@@ -13,6 +13,7 @@ import json
 refBot = commands.Bot(command_prefix="!")
 apiKey = ''
 playerNames = []
+littleLeaguers = {}
 ###########################################################################################################
 @refBot.command()
 async def draft():	
@@ -94,10 +95,7 @@ async def aye(summonerName):
 @refBot.command()
 async def bye(summonerName):
 	if summonerName == 'all':
-		n = 0
-		while n < len(playerNames):
-			del playerNames[n]
-			n += 1
+		playerNames.clear()
 		print('All deleted')
 	else:
 		playerNames.remove(summonerName)
@@ -111,6 +109,67 @@ async def roleCall():
 		playerList.append(str(plyrNum + 1) + '. ' + i + '\n')
 	playing = "".join(playerList)
 	await refBot.say(playing)
+###########################################################################################################
+@refBot.command()
+async def place(summoner):
+	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
+	summonerApiRequest = requests.get(summonerUrl)
+	rawSummonerData = summonerApiRequest.json()
+	summonerId = str(rawSummonerData["id"])
+
+	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+	await refBot.say(rankInfoUrl)
+	rankInfoApiRequest = requests.get(rankInfoUrl)
+	rawRankInfoData = rankInfoApiRequest.json()
+	rawRankInfo = rawRankInfoData[0]
+	tier = rawRankInfo["tier"]
+	rank = rawRankInfo["rank"]
+
+	if tier == "BRONZE":
+		playerRank = 1
+	elif tier == "SILVER":
+		playerRank = 2
+	elif tier == "GOLD":
+		playerRank = 3
+	elif tier == "PLATINUM":
+		playerRank = 4
+	elif tier == "DIAMOND":
+		playerRank = 5
+	elif tier == "MASTER":
+		playerRank = 6
+	elif tier == "CHALLENGER":
+		playerRank = 7
+	else:
+		print("Rank too high, find someone else")
+
+	if rank == "V":
+		playerRank += .1
+	elif rank == "IV":
+		playerRank += .2
+	elif rank == "III":
+		playerRank += .3
+	elif rank == "II":
+		playerRank += .4
+	elif rank == "I":
+		playerRank += .5
+	else:
+		print("Something went terribly wrong")
+
+	playerRank += rawRankInfo["leaguePoints"] * .001
+
+	littleLeaguers[rawSummonerData["name"]] = playerRank
+
+	await refBot.say(littleLeaguers)
+###########################################################################################################
+@refBot.command()
+async def aDraft():
+	sortedRoster = sorted(littleLeaguers.items(), key=operator.itemgetter(1))
+	print(sortedRoster)
+	total = 0
+
+	for i in sortedRoster:
+		val = sortedRoster[i]
+		total += val
 ###########################################################################################################
 @refBot.command()
 async def fuqU():
