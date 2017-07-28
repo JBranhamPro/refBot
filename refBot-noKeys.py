@@ -12,6 +12,7 @@ import json
 
 refBot = commands.Bot(command_prefix="!")
 apiKey = ''
+playerNames = []
 ###########################################################################################################
 @refBot.command()
 async def draft():	
@@ -39,7 +40,6 @@ async def test():
 @refBot.command()
 async def randomChamps(x):
 	n = int(x)
-	#champUrl = 'http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US/champion.json'
 	champUrl = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=' + apiKey
 	champApiRequest = requests.get(champUrl)
 	rawChampData = champApiRequest.json()
@@ -83,6 +83,34 @@ async def rank(summoner):
 	rankInfo = rawSummonerData["name"] + " = " + rawRankInfo["tier"] + " " + rawRankInfo["rank"] + " " + str(rawRankInfo["leaguePoints"]) + " LP"
 
 	await refBot.say(rankInfo)
+###########################################################################################################
+@refBot.command()
+async def aye(summonerName):
+	playerNames.append(summonerName)
+	if len(playerNames) > 9:
+		await refBot.say('We now have ten players, tell me to !roleCall for the roster and we can get started.')
+	return playerNames
+###########################################################################################################
+@refBot.command()
+async def bye(summonerName):
+	if summonerName == 'all':
+		n = 0
+		while n < len(playerNames):
+			del playerNames[n]
+			n += 1
+		print('All deleted')
+	else:
+		playerNames.remove(summonerName)
+	return playerNames
+###########################################################################################################
+@refBot.command()
+async def roleCall():
+	playerList = []
+	for i in playerNames:
+		plyrNum = playerNames.index(i)
+		playerList.append(str(plyrNum + 1) + '. ' + i + '\n')
+	playing = "".join(playerList)
+	await refBot.say(playing)
 ###########################################################################################################
 @refBot.command()
 async def fuqU():
