@@ -7,8 +7,11 @@ logging.basicConfig(level=logging.INFO)
 import asyncio
 
 from random import randint
+import requests
+import json
 
 refBot = commands.Bot(command_prefix="!")
+apiKey = ''
 ###########################################################################################################
 @refBot.command()
 async def draft():	
@@ -36,26 +39,50 @@ async def test():
 @refBot.command()
 async def randomChamps(x):
 	n = int(x)
-	champions = ["Aatrox", "Ahri", "Akali", "Alistar", "Amumu", "Anivia", "Annie", "Ashe", "Aurelion Sol", "Azir", "Bard", "Blitzcrank", "Brand", "Braum", "Caitlyn", "Camille", "Cassiopeia", "Cho'Gath", "Corki", "Darius", "Diana", "Dr. Mundo", "Draven", "Ekko", "Elise", "Evelynn", "Ezreal", "Fiddlesticks", "Fiora", "Fizz", "Galio", "Gangplank", "Garen", "Gnar", "Gragas", "Graves", "Hecarim", "Heimerdinger", "Illaoi", "Irelia", "Ivern", "Janna", "Jarvan IV", "Jax", "Jayce", "Jhin", "Jinx", "Kalista", "Karma", "Karthus", "Kassadin", "Katarina", "Kayle", "Kennen", "Kha'Zix", "Kindred", "Kled", "Kog'Maw", "LeBlanc", "Lee Sin", "Leona", "Lissandra", "Lucian", "Lulu", "Lux", "Malphite", "Malzahar", "Maokai", "Master Yi", "Miss Fortune", "Mordekaiser", "Morgana", "Nami", "Nasus", "Nautilus", "Nidalee", "Nocturne", "Nunu", "Olaf", "Orianna", "Pantheon", "Poppy", "Quinn", "Rammus", "Rek'Sai", "Renekton", "Rengar", "Riven", "Rumble", "Ryze", "Sejuani", "Shaco", "Shen", "Shyvana", "Singed", "Sion", "Sivir", "Skarner", "Sona", "Soraka", "Swain", "Syndra", "Tahm Kench", "Taliyah", "Talon", "Taric", "Teemo", "Thresh", "Tristana", "Trundle", "Tryndamere", "Twisted Fate", "Twitch", "Udyr", "Urgot", "Varus", "Vayne", "Veigar", "Vel'Koz", "Vi", "Viktor", "Vladimir", "Volibear", "Warwick", "Wukong", "Xerath", "Xin Zhao", "Yasuo", "Yorick", "Zac", "Zed", "Ziggs", "Zilean", "Zyra"]
-	champsDrafted = 0
-	listOfChamps = []
+	#champUrl = 'http://ddragon.leagueoflegends.com/cdn/6.24.1/data/en_US/champion.json'
+	champUrl = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=' + apiKey
+	champApiRequest = requests.get(champUrl)
+	rawChampData = champApiRequest.json()
+	champData = rawChampData["data"]
+	champList = []
 
-	if n > len(champions):
-		n = len(champions)
+	for champEntry in champData:
+		champ = champData[champEntry]
+		champList.append(champ["name"])
+
+	champsDrafted = 0
+	draftedChamps = []
+
+	if n > len(champList):
+		n = len(champList)
 
 	while champsDrafted < n:
-		champion = randint(0,len(champions) - 1)
+		champion = randint(0,len(champList) - 1)
 		try:
-			#await refBot.say(champions[champion])
-			listOfChamps.append(champions[champion] + '\n')
-			del champions[champion]
+			draftedChamps.append(champList[champion] + '\n')
+			del champList[champion]
 			champsDrafted += 1
 		except:
 			continue
 
-	champs = "".join(listOfChamps)
+	randomChampsMsg = "".join(draftedChamps)
 
-	await refBot.say(champs)
+	await refBot.say(randomChampsMsg)
+###########################################################################################################
+@refBot.command()
+async def rank(summoner):
+	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
+	summonerApiRequest = requests.get(summonerUrl)
+	rawSummonerData = summonerApiRequest.json()
+	summonerId = str(rawSummonerData["id"])
+
+	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+	rankInfoApiRequest = requests.get(rankInfoUrl)
+	rawRankInfoData = rankInfoApiRequest.json()
+	rawRankInfo = rawRankInfoData[0]
+	rankInfo = rawSummonerData["name"] + " = " + rawRankInfo["tier"] + " " + rawRankInfo["rank"] + " " + str(rawRankInfo["leaguePoints"]) + " LP"
+
+	await refBot.say(rankInfo)
 ###########################################################################################################
 @refBot.command()
 async def fuqU():
