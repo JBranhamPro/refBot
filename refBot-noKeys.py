@@ -7,6 +7,7 @@ logging.basicConfig(level=logging.INFO)
 import asyncio
 
 from random import randint
+import operator
 import requests
 import json
 
@@ -118,7 +119,6 @@ async def place(summoner):
 	summonerId = str(rawSummonerData["id"])
 
 	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
-	await refBot.say(rankInfoUrl)
 	rankInfoApiRequest = requests.get(rankInfoUrl)
 	rawRankInfoData = rankInfoApiRequest.json()
 	rawRankInfo = rawRankInfoData[0]
@@ -159,7 +159,7 @@ async def place(summoner):
 
 	littleLeaguers[rawSummonerData["name"]] = playerRank
 
-	await refBot.say(littleLeaguers)
+	print(littleLeaguers)
 ###########################################################################################################
 @refBot.command()
 async def aDraft():
@@ -167,9 +167,10 @@ async def aDraft():
 	print(sortedRoster)
 	total = 0
 
-	for i in sortedRoster:
-		val = sortedRoster[i]
-		total += val
+	for k, v in sortedRoster:
+		total += v
+
+	average = total / 2
 ###########################################################################################################
 @refBot.command()
 async def fuqU():
