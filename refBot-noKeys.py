@@ -17,6 +17,21 @@ apiKey = ''
 botToken = ''
 playerNames = []
 littleLeaguers = {}
+
+def getSummoner(summoner):
+	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
+	summonerApiRequest = requests.get(summonerUrl)
+	rawSummonerData = summonerApiRequest.json()
+	return rawSummonerData
+
+def getRank(summoner):
+	rawSummonerData = getSummoner(summoner)
+	summonerId = str(rawSummonerData["id"])
+	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+	rankInfoApiRequest = requests.get(rankInfoUrl)
+	rawRankInfoData = rankInfoApiRequest.json()
+	rawRankInfo = rawRankInfoData[0]
+	return rawRankInfo
 ###########################################################################################################
 @refBot.command()
 async def draft():	
@@ -75,15 +90,8 @@ async def randomChamps(x):
 ###########################################################################################################
 @refBot.command()
 async def rank(summoner):
-	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
-	summonerApiRequest = requests.get(summonerUrl)
-	rawSummonerData = summonerApiRequest.json()
-	summonerId = str(rawSummonerData["id"])
-
-	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
-	rankInfoApiRequest = requests.get(rankInfoUrl)
-	rawRankInfoData = rankInfoApiRequest.json()
-	rawRankInfo = rawRankInfoData[0]
+	rawRankInfo = getRank(summoner)
+	rawSummonerData = getSummoner(summoner)
 	rankInfo = rawSummonerData["name"] + " = " + rawRankInfo["tier"] + " " + rawRankInfo["rank"] + " " + str(rawRankInfo["leaguePoints"]) + " LP"
 
 	await refBot.say(rankInfo)
@@ -115,15 +123,8 @@ async def roleCall():
 ###########################################################################################################
 @refBot.command()
 async def place(summoner):
-	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
-	summonerApiRequest = requests.get(summonerUrl)
-	rawSummonerData = summonerApiRequest.json()
-	summonerId = str(rawSummonerData["id"])
-
-	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
-	rankInfoApiRequest = requests.get(rankInfoUrl)
-	rawRankInfoData = rankInfoApiRequest.json()
-	rawRankInfo = rawRankInfoData[0]
+	rawRankInfo = getRank(summoner)
+	rawSummonerData = getSummoner(summoner)
 	tier = rawRankInfo["tier"]
 	rank = rawRankInfo["rank"]
 
@@ -145,15 +146,15 @@ async def place(summoner):
 		print("Rank too high, find someone else")
 
 	if rank == "V":
-		playerRank += .1
+		playerRank += .0
 	elif rank == "IV":
-		playerRank += .2
+		playerRank += .1
 	elif rank == "III":
-		playerRank += .3
+		playerRank += .2
 	elif rank == "II":
-		playerRank += .4
+		playerRank += .3
 	elif rank == "I":
-		playerRank += .5
+		playerRank += .4
 	else:
 		print("Something went terribly wrong")
 
@@ -161,44 +162,55 @@ async def place(summoner):
 
 	littleLeaguers[rawSummonerData["name"]] = playerRank
 
-	print(littleLeaguers)
+	#print(littleLeaguers)
 ###########################################################################################################
 @refBot.command()
 async def aDraft():
-	sortedRoster = sorted(littleLeaguers.items(), key=operator.itemgetter(1))
-	print(sortedRoster)
+	#sortedRoster = sorted(littleLeaguers.items(), key=operator.itemgetter(1))
+	sortedRoster = littleLeaguers
+	actuallySortedRoster = sorted(sortedRoster.items(), key=operator.itemgetter(1))
 	teamA = []
 	teamB = []
 	rosterA = []
 	rosterB = []
-	over = False
 	total = 0
 
-	for k, v in sortedRoster:
+	for k, v in actuallySortedRoster:
 		total += v
 
-	average = total / len(littleLeaguers)
+	average = total / len(sortedRoster)
+	print(average)
 
-	def draftRoster():
-		n = 0
-		while n < len(littleLeaguers)/2:
-			draftedPlayer = random.choice(littleLeaguers.keys())
-			if over == True:
-				while over == True:
-					draftedPlayer = random.choice(littleLeaguers.keys())
-					if draftedPlayer < average:
-						over = False
+	n = len(sortedRoster) / 2
+	def draftTeam():
+		teamValue = 0
+		over = False
+		x = 0
+		while x < n:
+			draftedPlayer = random.choice(list(sortedRoster.keys()))
+			playerValue = sortedRoster[draftedPlayer]
 			if a == True:
+				while over == True:
+					draftedPlayer = random.choice(list(sortedRoster.keys()))
+					playerValue = sortedRoster[draftedPlayer]
+					if playerValue < average:
+						over = False
 				teamA.append(draftedPlayer)
+				teamValue += playerValue
+				del sortedRoster[draftedPlayer]
 			else:
 				teamB.append(draftedPlayer)
-			if draftedPlayer > average:
+				teamValue += playerValue
+				del sortedRoster[draftedPlayer]
+			if playerValue > average:
 				over = True
+			x += 1
+		print(teamValue)
 
 	a = True
-	draftRoster()
+	draftTeam()
 	a = False
-	draftRoster()
+	draftTeam()
 
 	for i in teamA:
 		rosterA.append((str(teamA.index(i) + 1) + '. ' + i + '\n'))
@@ -208,7 +220,7 @@ async def aDraft():
 		rosterB.append((str(teamB.index(i) + 1) + '. ' + i + '\n'))
 	msgTeamB = "".join(rosterB)
 
-	await refBot.say(msgTeamA, '\n', '\n', msgTeamB)
+	await refBot.say(msgTeamA + '\n' + '\n' + msgTeamB)
 ###########################################################################################################
 @refBot.command()
 async def fuqU():
