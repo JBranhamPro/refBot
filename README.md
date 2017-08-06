@@ -12,4 +12,12 @@ Desired functionality for RefBot:
 
 4. "!bye <summoner name>" - Removes the summoner given from the roster of currently playing "Little League" players. "!bye all" removes all players from the roster ==WORKING AS INTENDED [as of version 6]
 
-5. "!roleCall" - Messages the lobby with the current roster of playing "Little League" players, listed 1-10
+5. "!rollCall" - Messages the lobby with the current roster of playing "Little League" players, listed in ascending numeric order
+
+6. "!rank <summoner name>" - Messages the lobby with the Solo/Duo Queue ranked stats for the summoner given
+
+7. "!place <summoner name>" - Assigns the player a numeric value based on the rank of the summoner provided
+
+8. "!roster" - Messages the lobby with the list of players currently assigned values via the !place command
+
+9. "!aDraft" - Uses player values to sort the players that have been placed (using the !place command) into two teams of near equal value
