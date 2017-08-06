@@ -27,10 +27,13 @@ def getSummoner(summoner):
 def getRank(summoner):
 	rawSummonerData = getSummoner(summoner)
 	summonerId = str(rawSummonerData["id"])
-	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
-	rankInfoApiRequest = requests.get(rankInfoUrl)
-	rawRankInfoData = rankInfoApiRequest.json()
-	rawRankInfo = rawRankInfoData[0]
+	try:
+		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+		rankInfoApiRequest = requests.get(rankInfoUrl)
+		rawRankInfoData = rankInfoApiRequest.json()
+		rawRankInfo = rawRankInfoData[0]
+	except:
+		rawRankInfo = {'tier':'UNRANKED', 'rank': '', 'leaguePoints': 0}
 	return rawRankInfo
 ###########################################################################################################
 @refBot.command()
@@ -39,14 +42,10 @@ async def draft():
 	playersDrafted = 0
 	roleOrder = []
 
-	while playersDrafted < 5:
-		draftedRole = randint(0,4)
-		try:
-			roleOrder.append(roles[draftedRole] + '\n')
-			del roles[draftedRole]
-			playersDrafted +=1
-		except:
-			continue
+	while len(roles) > 0:
+		draftedRole = randint(0,len(roles) - 1)
+		roleOrder.append(roles[draftedRole] + '\n')
+		del roles[draftedRole]
 
 	draftOrder = "".join(roleOrder)
 	
@@ -64,25 +63,21 @@ async def randomChamps(x):
 	rawChampData = champApiRequest.json()
 	champData = rawChampData["data"]
 	champList = []
+	draftedChamps = []
 
 	for champEntry in champData:
 		champ = champData[champEntry]
 		champList.append(champ["name"])
 
-	champsDrafted = 0
-	draftedChamps = []
-
 	if n > len(champList):
 		n = len(champList)
 
+	champsDrafted = 0
 	while champsDrafted < n:
 		champion = randint(0,len(champList) - 1)
-		try:
-			draftedChamps.append(champList[champion] + '\n')
-			del champList[champion]
-			champsDrafted += 1
-		except:
-			continue
+		draftedChamps.append(champList[champion] + '\n')
+		del champList[champion]
+		champsDrafted += 1
 
 	randomChampsMsg = "".join(draftedChamps)
 
@@ -113,7 +108,7 @@ async def bye(summonerName):
 	return playerNames
 ###########################################################################################################
 @refBot.command()
-async def roleCall():
+async def rollCall():
 	playerList = []
 	for i in playerNames:
 		plyrNum = playerNames.index(i)
@@ -128,7 +123,9 @@ async def place(summoner):
 	tier = rawRankInfo["tier"]
 	rank = rawRankInfo["rank"]
 
-	if tier == "BRONZE":
+	if tier == 'UNRANKED':
+		playerRank = 0
+	elif tier == "BRONZE":
 		playerRank = 1
 	elif tier == "SILVER":
 		playerRank = 2
@@ -143,7 +140,7 @@ async def place(summoner):
 	elif tier == "CHALLENGER":
 		playerRank = 7
 	else:
-		print("Rank too high, find someone else")
+		print("No tier information available")
 
 	if rank == "V":
 		playerRank += .0
@@ -156,7 +153,7 @@ async def place(summoner):
 	elif rank == "I":
 		playerRank += .4
 	else:
-		print("Something went terribly wrong")
+		print("No rank available")
 
 	playerRank += rawRankInfo["leaguePoints"] * .001
 
@@ -165,43 +162,50 @@ async def place(summoner):
 	#print(littleLeaguers)
 ###########################################################################################################
 @refBot.command()
+async def roster():
+	rosterMsg = ''
+	for k,v in littleLeaguers.items():
+		rosterMsg += (k + ' = ' + str(v) + '\n')
+	await refBot.say(rosterMsg)
+###########################################################################################################
+@refBot.command()
 async def aDraft():
-	#sortedRoster = sorted(littleLeaguers.items(), key=operator.itemgetter(1))
-	sortedRoster = littleLeaguers
-	actuallySortedRoster = sorted(sortedRoster.items(), key=operator.itemgetter(1))
+	tempRoster = littleLeaguers
 	teamA = []
 	teamB = []
 	rosterA = []
 	rosterB = []
 	total = 0
+	units = 0
 
-	for k, v in actuallySortedRoster:
+	for k, v in tempRoster.items():
 		total += v
+		units += 1
 
-	average = total / len(sortedRoster)
+	average = total / units
 	print(average)
 
-	n = len(sortedRoster) / 2
+	n = units / 2
 	def draftTeam():
 		teamValue = 0
 		over = False
 		x = 0
 		while x < n:
-			draftedPlayer = random.choice(list(sortedRoster.keys()))
-			playerValue = sortedRoster[draftedPlayer]
+			draftedPlayer = random.choice(list(tempRoster.keys()))
+			playerValue = tempRoster[draftedPlayer]
 			if a == True:
 				while over == True:
-					draftedPlayer = random.choice(list(sortedRoster.keys()))
-					playerValue = sortedRoster[draftedPlayer]
+					draftedPlayer = random.choice(list(tempRoster.keys()))
+					playerValue = tempRoster[draftedPlayer]
 					if playerValue < average:
 						over = False
 				teamA.append(draftedPlayer)
 				teamValue += playerValue
-				del sortedRoster[draftedPlayer]
+				del tempRoster[draftedPlayer]
 			else:
 				teamB.append(draftedPlayer)
 				teamValue += playerValue
-				del sortedRoster[draftedPlayer]
+				del tempRoster[draftedPlayer]
 			if playerValue > average:
 				over = True
 			x += 1
