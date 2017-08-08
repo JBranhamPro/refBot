@@ -20,7 +20,7 @@ async def aDraft():
 	await testBot.say('!place Xyeles')
 
 @testBot.command()
-async def roleCall():
+async def rollCall():
 	await testBot.say('!aye TheRealN3lo')
 	await testBot.say('!aye Ickyrus')
 	await testBot.say('!aye Bobmicbiong')
@@ -32,6 +32,6 @@ async def roleCall():
 	await testBot.say('!aye TheBigSpence')
 	await testBot.say('!aye Xyeles')
 
-	await testBot.say('!roleCall')
+	await testBot.say('!rollCall')
 
 testBot.run(botToken)
