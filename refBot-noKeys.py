@@ -13,8 +13,8 @@ import json
 
 ###########################################################################################################
 refBot = commands.Bot(command_prefix="!")
-apiKey = ''
-botToken = ''
+apiKey = 'RGAPI-780fbb3c-69d9-4b58-b394-2a946af1aecd'
+botToken = 'MzMxOTMyNDQ3Mjk1OTMwMzY5.DD6pBA.jXtyjwhndTduj5_m04tNV8WndrA'
 playerNames = []
 littleLeaguers = {}
 
@@ -158,8 +158,15 @@ async def place(summoner):
 	playerRank += rawRankInfo["leaguePoints"] * .001
 
 	littleLeaguers[rawSummonerData["name"]] = playerRank
-
-	#print(littleLeaguers)
+###########################################################################################################
+@refBot.command()
+async def aPlace():
+	user = requests.get('https://discordapp.com/api/users/@me')
+	print(user)
+	summoner = user['username']
+	#placeSumm(summoner)
+	print(summoner)
+	self.place(summoner)
 ###########################################################################################################
 @refBot.command()
 async def roster():
@@ -170,7 +177,7 @@ async def roster():
 ###########################################################################################################
 @refBot.command()
 async def aDraft():
-	tempRoster = littleLeaguers
+	tempRoster = littleLeaguers.copy()
 	teamA = []
 	teamB = []
 	rosterA = []
