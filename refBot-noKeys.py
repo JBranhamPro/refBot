@@ -150,7 +150,7 @@ async def aye(summonerName):
 		playerNames.append(summoner)
 
 	if len(playerNames) > 9:
-		await refBot.say('We now have ten players, tell me to !rolCall for the roster and we can get started.')
+		await refBot.say('We now have ten players, tell me to !rollCall for the roster and we can get started.')
 	return playerNames
 #_BYE_#######################################################################################################
 @refBot.command()
@@ -182,9 +182,16 @@ async def place(summoner):
 	if summoner == 'all':
 		for name in playerNames:
 			placeSumm(name)
-		print('All ' + len(playerNames) + ' players have been placed and added to littleLeaguers.')
+		print('All ' + str(len(playerNames)) + ' players have been placed and added to littleLeaguers.')
 	else:
 		placeSumm(summoner)
+#_REPLACE_#####################################################################################################
+@refBot.command()
+async def replace(summoner):
+	if summoner == 'all':
+		littleLeaguers.clear()
+	else:
+		del littleLeaguers[summoner]
 #_APLACE#####################################################################################################
 @refBot.command()
 async def aPlace():
@@ -192,8 +199,6 @@ async def aPlace():
 	print(user)
 	summoner = user['username']
 	#placeSumm(summoner)
-	print(summoner)
-	self.place(summoner)
 #_ROSTER_#####################################################################################################
 @refBot.command()
 async def roster():
@@ -204,6 +209,7 @@ async def roster():
 #_ADRAFT_#####################################################################################################
 @refBot.command()
 async def aDraft():
+	await refBot.say('Give me a sec so I can make sure I get two fair teams.')
 	tempRoster = littleLeaguers.copy()
 	teamA = []
 	teamB = []
