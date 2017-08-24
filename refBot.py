@@ -9,6 +9,7 @@ from random import randint
 import operator
 import requests
 import json
+from itertools import permutations
 
 import apiCalls
 import secrets
@@ -32,10 +33,6 @@ async def draft():
 	draftOrder = "".join(roleOrder)
 	
 	await refBot.say(draftOrder)
-#_TEST_######################################################################################################
-@refBot.command()
-async def test():
-	await refBot.say('What am I?')
 #_RANDOMCHAMPS_##############################################################################################
 @refBot.command()
 async def rChamps(x):
@@ -123,14 +120,10 @@ async def replace(summoner):
 	else:
 		del littleLeaguers[summoner]
 #_APLACE#####################################################################################################
-# @refBot.command()
-# async def aPlace():
-	# user = requests.get('https://discordapp.com/api/users/@me')
-	# print(user)
-	# summoner = user['username']
-	# #placeSumm(summoner)
-	# print(summoner)
-	# self.place(summoner)
+@refBot.command()
+async def aPlace():
+	user = requests.get('https://discordapp.com/api/users/@me')
+	print(user)
 #_ROSTER_#####################################################################################################
 @refBot.command()
 async def roster():
@@ -138,66 +131,48 @@ async def roster():
 	for k,v in littleLeaguers.items():
 		rosterMsg += (k + ' = ' + str(v) + '\n')
 	await refBot.say(rosterMsg)
-#_ADRAFT_#####################################################################################################
+#_ADRAFT_########################################################################################################
 @refBot.command()
 async def aDraft():
-	await refBot.say('Give me a sec so I can make sure I get two fair teams.')
-	tempRoster = littleLeaguers.copy()
 	teamA = []
 	teamB = []
-	rosterA = []
-	rosterB = []
-	total = 0
-	units = 0
+	bestA = []
+	bestB = []
+	valueA = 0
+	valueB = 0
+	prevVal = 100
+	newVal = 0
 
-	for k, v in tempRoster.items():
-		total += v
-		units += 1
+	for permutation in permutations(playerNames, 5):
+		print(permutation)
+		teamA.clear()
+		teamB.clear()
+		valueA = 0
+		valueB = 0
+		tempRoster = littleLeaguers.copy()
+		for name in permutation:
+			teamA.append(name)
+			valueA += tempRoster[name]
+			del tempRoster[name]
+		for k, v in tempRoster.items():
+			teamB.append(k)
+			valueB += v
+		newVal = abs(valueA - valueB)
+		if newVal < prevVal:
+			prevVal = newVal
+			bestA = teamA.copy()
+			bestB = teamB.copy()
 
-	average = total / units
-	print(average)
+	teamA.clear()
+	for player in bestA:
+		teamA.append(player + '\n')
+	await refBot.say('Team A is:\n\n' + "".join(teamA) + 'with a value of: ' + str(valueA))
 
-	n = units / 2
-	def draftTeam():
-		teamValue = 0
-		over = False
-		x = 0
-		while x < n:
-			draftedPlayer = random.choice(list(tempRoster.keys()))
-			playerValue = tempRoster[draftedPlayer]
-			if a == True:
-				while over == True:
-					draftedPlayer = random.choice(list(tempRoster.keys()))
-					playerValue = tempRoster[draftedPlayer]
-					if playerValue < average:
-						over = False
-				teamA.append(draftedPlayer)
-				teamValue += playerValue
-				del tempRoster[draftedPlayer]
-			else:
-				teamB.append(draftedPlayer)
-				teamValue += playerValue
-				del tempRoster[draftedPlayer]
-			if playerValue > average:
-				over = True
-			x += 1
-		print(teamValue)
-
-	a = True
-	draftTeam()
-	a = False
-	draftTeam()
-
-	for i in teamA:
-		rosterA.append((str(teamA.index(i) + 1) + '. ' + i + '\n'))
-	msgTeamA = "".join(rosterA)
-
-	for i in teamB:
-		rosterB.append((str(teamB.index(i) + 1) + '. ' + i + '\n'))
-	msgTeamB = "".join(rosterB)
-
-	await refBot.say(msgTeamA + '\n' + '\n' + msgTeamB)
-#_FUQU_######################################################################################################
+	teamB.clear()
+	for player in bestB:
+		teamB.append(player + '\n')
+	await refBot.say('Team B is:\n\n' + "".join(teamB) + 'with a value of: ' + str(valueB))
+#_FOR MAX_######################################################################################################
 @refBot.command()
 async def fuqU():
 	await refBot.say("What the fuck did you just fucking say about me, you little bitch? I\'ll have you know I graduated top of my class in the Navy Seals, and I\’ve been involved in numerous secret raids on Al-Quaeda, and I have over 300 confirmed kills. I am trained in gorilla warfare and I\’m the top sniper in the entire US armed forces. You are nothing to me but just another target. I will wipe you the fuck out with precision the likes of which has never been seen before on this Earth, mark my fucking words. You think you can get away with saying that shit to me over the Internet? Think again, fucker. As we speak I am contacting my secret network of spies across the USA and your IP is being traced right now so you better prepare for the storm, maggot. The storm that wipes out the pathetic little thing you call your life. You\’re fucking dead, kid. I can be anywhere, anytime, and I can kill you in over seven hundred ways, and that\’s just with my bare hands. Not only am I extensively trained in unarmed combat, but I have access to the entire arsenal of the United States Marine Corps and I will use it to its full extent to wipe your miserable ass off the face of the continent, you little shit. If only you could have known what unholy retribution your little \“clever\” comment was about to bring down upon you, maybe you would have held your fucking tongue. But you couldn\’t, you didn\’t, and now you\’re paying the price, you goddamn idiot. I will shit fury all over you and you will drown in it. You\’re fucking dead, kiddo.")
