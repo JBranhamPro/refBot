@@ -53,17 +53,13 @@ async def rChamps(x):
 	randomChampsMsg = "".join(draftedChamps)
 
 	await refBot.say(randomChampsMsg)
-#_RANK_######################################################################################################
-@refBot.command()
-async def rank(summoner):
-	rawRankInfo = apiCalls.getRank(summoner)
-	rawSummonerData = apiCalls.getSummoner(summoner)
-	rankInfo = rawSummonerData["name"] + " = " + rawRankInfo["tier"] + " " + rawRankInfo["rank"] + " " + str(rawRankInfo["leaguePoints"]) + " LP"
-
-	await refBot.say(rankInfo)
 #_AYE_#######################################################################################################
 @refBot.command()
-async def aye(summonerName):
+async def aye(*args):
+	summonerName = ''
+	for ar in args:
+		summonerName += ar
+
 	try:
 		rawSummonerData = apiCalls.getSummoner(summonerName)
 		summoner = rawSummonerData["name"]
@@ -81,9 +77,14 @@ async def aye(summonerName):
 	return playerNames
 #_BYE_#######################################################################################################
 @refBot.command()
-async def bye(summonerName):
+async def bye(*args):
+	summonerName = ''
+	for ar in args:
+		summonerName += ar
+
 	if summonerName == 'all':
 		playerNames.clear()
+		littleLeaguers.clear()
 		print('All deleted')
 	else:
 		try:
@@ -93,6 +94,10 @@ async def bye(summonerName):
 		except:
 			print('\"' + summonerName + '\"' + ' is an invalid summoner name.')
 			playerNames.remove(summonerName)
+		try:
+			del littleLeaguers[summonerName]
+		except:
+			print(summonerName + ' was not placed.')
 	return playerNames
 #_ROLLCALL_##################################################################################################
 @refBot.command()
@@ -103,22 +108,6 @@ async def rollCall():
 		playerList.append(str(plyrNum) + '. ' + i + '\n')
 	playing = "".join(playerList)
 	await refBot.say(playing)
-#_PLACE_#####################################################################################################
-@refBot.command()
-async def place(summoner):
-	if summoner == 'all':
-		for name in playerNames:
-			apiCalls.placeSumm(name)
-		print('All ' + str(len(playerNames)) + ' players have been placed and added to littleLeaguers.')
-	else:
-		apiCalls.placeSumm(summoner)
-#_REPLACE_#####################################################################################################
-@refBot.command()
-async def replace(summoner):
-	if summoner == 'all':
-		littleLeaguers.clear()
-	else:
-		del littleLeaguers[summoner]
 #_APLACE#####################################################################################################
 @refBot.command()
 async def aPlace():
@@ -131,9 +120,9 @@ async def roster():
 	for k,v in littleLeaguers.items():
 		rosterMsg += (k + ' = ' + str(v) + '\n')
 	await refBot.say(rosterMsg)
-#_ADRAFT_########################################################################################################
+#_AUTODRAFT_###################################################################################################
 @refBot.command()
-async def aDraft():
+async def autoDraft():
 	teamA = []
 	teamB = []
 	bestA = []
@@ -142,6 +131,13 @@ async def aDraft():
 	valueB = 0
 	prevVal = 100
 	newVal = 0
+
+	for name in playerNames:
+		if name in littleLeaguers:
+			print("Validated " + name + " as a Little Leaguer.")
+		else:
+			apiCalls.placeSumm(name)
+			print(name + " has been placed.")
 
 	for permutation in permutations(playerNames, 5):
 		print(permutation)
