@@ -17,42 +17,97 @@ import secrets
 refBot = commands.Bot(command_prefix="!")
 playerNames = apiCalls.playerNames
 littleLeaguers = apiCalls.littleLeaguers
+matchmade = True
+randomChampions = True
+champNum = 15
+randomLanes = True
+champListA = apiCalls.champsA
+champListB = apiCalls.champsB
+teamA = apiCalls.teamA
+teamB = apiCalls.teamB
+roleOrder = apiCalls.roleOrder
 
+#_ON_#####################################################################################################
+@refBot.command()
+async def on(option, detail='15'):
+	if option == 'matchmade':
+		global matchmade 
+		matchmade = True
+		await refBot.say('Players will now be automatically matchmade.')
+	elif option == 'rChamps':
+		global randomChampions 
+		randomChampions = True
+		global champNum
+		champNum = int(detail)
+		await refBot.say('Random champion pools will be assinged to each team with ' + str(champNum) + ' champions per team.')
+	elif option == 'rLanes':
+		global randomLanes 
+		randomLanes = True
+		await refBot.say('Lanes will now be randomly assigned to players.')
+#_OFF_#####################################################################################################
+@refBot.command()
+async def off(option):
+	if option == 'matchmade':
+		global matchmade
+		matchmade = False
+		await refBot.say('Matchmaking for draft has been turned OFF.')
+	elif option == 'rChamps':
+		global randomChampions
+		randomChampions = False
+		await refBot.say('Random Champions for draft has been turned OFF.')
+	elif option == 'rLanes':
+		global randomLanes
+		randomLanes = False
+		await refBot.say('Random Lanes for draft has been turned OFF.')
 #_DRAFT_#####################################################################################################
 @refBot.command()
-async def draft():	
-	roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support']
-	playersDrafted = 0
-	roleOrder = []
+async def draft():
+	playerSetA = {}
+	playerSetB = {}
+	champsA = ''
+	champsB = ''
 
-	while len(roles) > 0:
-		draftedRole = randint(0,len(roles) - 1)
-		roleOrder.append(roles[draftedRole] + '\n')
-		del roles[draftedRole]
+	if matchmade == True:
+		apiCalls.autoDraft()
+		playerNum = 1
+		for player in teamA:
+			playerSetA[player] = 'Player ' + str(playerNum)
+			playerNum += 1
+		playerNum = 1
+		for player in teamB:
+			playerSetB[player] = 'Player ' + str(playerNum)
+			playerNum += 1
 
-	draftOrder = "".join(roleOrder)
-	
-	await refBot.say(draftOrder)
-#_RANDOMCHAMPS_##############################################################################################
-@refBot.command()
-async def rChamps(x):
-	n = int(x)
-	champList = apiCalls.getChampList()
-	draftedChamps = []
+	if randomLanes == True:
+		apiCalls.rLanes()
+		num = 0
+		for player in teamA:
+			playerSetA[player] = roleOrder[num]
+			num += 1
+		num = 0
+		for player in teamB:
+			playerSetB[player] = roleOrder[num]
+			num += 1
 
-	if n > len(champList):
-		n = len(champList)
+	if randomChampions == True:
+		apiCalls.rChamps(champNum)
 
-	champsDrafted = 0
-	while champsDrafted < n:
-		champion = randint(0,len(champList) - 1)
-		draftedChamps.append(champList[champion] + '\n')
-		del champList[champion]
-		champsDrafted += 1
+	draftA = []
+	for k, v in playerSetA.items():
+		draftA.append('        ' + str(k) + ' -- ' + str(v) + '\n')
+	if randomChampions == True:
+		champsA = '    with the following champion pool: \n\n' + ''.join(champListA)
 
-	randomChampsMsg = "".join(draftedChamps)
+	draftB = []
+	for k, v in playerSetB.items():
+		draftB.append('        ' + str(k) + ' -- ' + str(v) + '\n')
+	if randomChampions == True:
+		champsB = '    with the following champion pool: \n\n' + ''.join(champListB)
 
-	await refBot.say(randomChampsMsg)
+	draftMessageA = '\nPlayers in their respective roles for Team A are: \n\n' + ''.join(draftA) + '\n' + champsA
+	draftMessageB = '\nPlayers in their respective roles for Team B are: \n\n' + ''.join(draftB) + '\n' + champsB
+
+	await refBot.say(draftMessageA + draftMessageB)
 #_AYE_#######################################################################################################
 @refBot.command()
 async def aye(*args):
@@ -63,6 +118,7 @@ async def aye(*args):
 	try:
 		rawSummonerData = apiCalls.getSummoner(summonerName)
 		summoner = rawSummonerData["name"]
+		print(summoner)
 	except:
 		await refBot.say('\"' + summonerName + '\"' + ' is an invalid summoner name.')
 		return
@@ -70,7 +126,7 @@ async def aye(*args):
 	if playerNames.count(summoner) > 0:
 		await refBot.say('STOP RIGHT THERE! You can only enter your name in the roster once!')
 	else:	
-		playerNames.append(summoner)
+		apiCalls.playerNames.append(summoner)
 
 	if len(playerNames) > 9:
 		await refBot.say('We now have ten players, tell me to !rollCall for the roster and we can get started.')
@@ -120,54 +176,6 @@ async def roster():
 	for k,v in littleLeaguers.items():
 		rosterMsg += (k + ' = ' + str(v) + '\n')
 	await refBot.say(rosterMsg)
-#_AUTODRAFT_###################################################################################################
-@refBot.command()
-async def autoDraft():
-	teamA = []
-	teamB = []
-	bestA = []
-	bestB = []
-	valueA = 0
-	valueB = 0
-	prevVal = 100
-	newVal = 0
-
-	for name in playerNames:
-		if name in littleLeaguers:
-			print("Validated " + name + " as a Little Leaguer.")
-		else:
-			apiCalls.placeSumm(name)
-			print(name + " has been placed.")
-
-	for permutation in permutations(playerNames, 5):
-		print(permutation)
-		teamA.clear()
-		teamB.clear()
-		valueA = 0
-		valueB = 0
-		tempRoster = littleLeaguers.copy()
-		for name in permutation:
-			teamA.append(name)
-			valueA += tempRoster[name]
-			del tempRoster[name]
-		for k, v in tempRoster.items():
-			teamB.append(k)
-			valueB += v
-		newVal = abs(valueA - valueB)
-		if newVal < prevVal:
-			prevVal = newVal
-			bestA = teamA.copy()
-			bestB = teamB.copy()
-
-	teamA.clear()
-	for player in bestA:
-		teamA.append(player + '\n')
-	await refBot.say('Team A is:\n\n' + "".join(teamA) + 'with a value of: ' + str(valueA))
-
-	teamB.clear()
-	for player in bestB:
-		teamB.append(player + '\n')
-	await refBot.say('Team B is:\n\n' + "".join(teamB) + 'with a value of: ' + str(valueB))
 #_FOR MAX_######################################################################################################
 @refBot.command()
 async def fuqU():
