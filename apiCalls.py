@@ -4,10 +4,16 @@ import operator
 import requests
 import json
 import secrets
+from itertools import permutations
 apiKey = secrets.apiKey
 
 playerNames = []
 littleLeaguers = {}
+champsA = []
+champsB = []
+teamA = []
+teamB = []
+roleOrder = []
 
 def getSummoner(summoner):
 	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summoner + '?api_key=' + apiKey
@@ -22,7 +28,10 @@ def getRank(summoner):
 		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
 		rankInfoApiRequest = requests.get(rankInfoUrl)
 		rawRankInfoData = rankInfoApiRequest.json()
-		rawRankInfo = rawRankInfoData[0]
+		try: 
+			rawRankInfo = rawRankInfoData[1]
+		except: 
+			rawRankInfo = rawRankInfoData[0]
 	except:
 		rawRankInfo = {'tier':'UNRANKED', 'rank': '', 'leaguePoints': 0}
 	return rawRankInfo
@@ -81,3 +90,77 @@ def getChampList():
 		champList.append(champ["name"])
 
 	return champList
+
+def rLanes():	
+	roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support']
+	playersDrafted = 0
+
+	while len(roles) > 0:
+		draftedRole = randint(0,len(roles) - 1)
+		roleOrder.append(roles[draftedRole])
+		del roles[draftedRole]
+
+def rChamps(x):
+	n = int(x)
+	champList = getChampList()
+
+	if n > len(champList):
+		n = len(champList)
+
+	def pullChamps(team):
+		champsDrafted = 0
+		while champsDrafted < n:
+			champion = randint(0,len(champList) - 1)
+			if team == 'a':
+				champsA.append('                ' + str(champsDrafted + 1) + '. ' + champList[champion] + '\n')
+			else:
+				champsB.append('                ' + str(champsDrafted + 1) + '. ' + champList[champion] + '\n')
+			del champList[champion]
+			champsDrafted += 1
+
+	pullChamps('a')
+	pullChamps('b')
+
+def autoDraft():
+	print('autoDraft has started')
+	bestA = []
+	bestB = []
+	valueA = 0
+	valueB = 0
+	prevVal = 100
+	newVal = 0
+
+	for name in playerNames:
+		if name in littleLeaguers:
+			print("Validated " + name + " as a Little Leaguer.")
+		else:
+			placeSumm(name)
+			print(name + " has been placed.")
+
+	for permutation in permutations(playerNames, 5):
+		print(permutation)
+		teamA.clear()
+		teamB.clear()
+		valueA = 0
+		valueB = 0
+		tempRoster = littleLeaguers.copy()
+		for name in permutation:
+			teamA.append(name)
+			valueA += tempRoster[name]
+			del tempRoster[name]
+		for k, v in tempRoster.items():
+			teamB.append(k)
+			valueB += v
+		newVal = abs(valueA - valueB)
+		if newVal < prevVal:
+			prevVal = newVal
+			bestA = teamA.copy()
+			bestB = teamB.copy()
+
+	teamA.clear()
+	for player in bestA:
+		teamA.append(player)
+
+	teamB.clear()
+	for player in bestB:
+		teamB.append(player)
