@@ -1,7 +1,7 @@
 # RefBot
-date of last update = Sep 20, 2017
-
 The discord bot for the "Little League" League of Legends fan-made game mode.
+
+date of last update = Sep 20, 2017
 
 
 Functionality currently working as intended as of date of last update:
