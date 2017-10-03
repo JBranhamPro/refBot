@@ -62,6 +62,7 @@ async def off(option):
 #_DRAFT_#####################################################################################################
 @refBot.command()
 async def draft():
+	await refBot.say('Autodraft has been initiated. Give me a moment to put together the teams.')
 	playerSetA = {}
 	playerSetB = {}
 	champsA = ''
@@ -88,24 +89,38 @@ async def draft():
 		for player in teamB:
 			playerSetB[player] = roleOrder[num]
 			num += 1
-
+			
 	if randomChampions == True:
 		apiCalls.rChamps(champNum)
 
 	draftA = []
 	for k, v in playerSetA.items():
-		draftA.append('        ' + str(k) + ' -- ' + str(v) + '\n')
+		itemA = '|        ' + str(k) + '   '
+		x = 0
+		n = 25 - len(str(k))
+		while x < n:
+			itemA += '-'
+			x += 1
+		itemA += '>' + '   ' + str(v) + '\n|\n'
+		draftA.append(itemA)
 	if randomChampions == True:
 		champsA = '    with the following champion pool: \n\n' + ''.join(champListA)
 
 	draftB = []
 	for k, v in playerSetB.items():
-		draftB.append('        ' + str(k) + ' -- ' + str(v) + '\n')
+		itemB = '|        ' + str(k) + '   '
+		x = 0
+		n = 25 - len(str(k))
+		while x < n:
+			itemB += '-'
+			x += 1
+		itemB += '>' + '   ' + str(v) + '\n|\n'
+		draftB.append(itemB)
 	if randomChampions == True:
 		champsB = '    with the following champion pool: \n\n' + ''.join(champListB)
 
-	draftMessageA = '\nPlayers in their respective roles for Team A are: \n\n' + ''.join(draftA) + '\n' + champsA
-	draftMessageB = '\nPlayers in their respective roles for Team B are: \n\n' + ''.join(draftB) + '\n' + champsB
+	draftMessageA = 'Team A: \n\n' + ''.join(draftA) + '\n' + champsA
+	draftMessageB = '\n\n\nTeam B: \n\n' + ''.join(draftB) + '\n' + champsB
 
 	await refBot.say(draftMessageA + draftMessageB)
 #_AYE_#######################################################################################################
@@ -118,7 +133,7 @@ async def aye(*args):
 	try:
 		rawSummonerData = apiCalls.getSummoner(summonerName)
 		summoner = rawSummonerData["name"]
-		print(summoner)
+		print(summoner, 'has been queued')
 	except:
 		await refBot.say('\"' + summonerName + '\"' + ' is an invalid summoner name.')
 		return
@@ -164,11 +179,6 @@ async def rollCall():
 		playerList.append(str(plyrNum) + '. ' + i + '\n')
 	playing = "".join(playerList)
 	await refBot.say(playing)
-#_APLACE#####################################################################################################
-@refBot.command()
-async def aPlace():
-	user = requests.get('https://discordapp.com/api/users/@me')
-	print(user)
 #_ROSTER_#####################################################################################################
 @refBot.command()
 async def roster():
@@ -176,7 +186,37 @@ async def roster():
 	for k,v in littleLeaguers.items():
 		rosterMsg += (k + ' = ' + str(v) + '\n')
 	await refBot.say(rosterMsg)
-#_FOR MAX_######################################################################################################
+#_HELP_########################################################################################################
+@refBot.command()
+async def hlp(helpMessage = 'default'):
+	if helpMessage == 'default':
+		helpMessage = 'This command provides detailed information on various Refbot features. To receive additional command on a specific feature type \"!? command_name_here\".\n\nCurrently available features:\n\n1. aye\n2. bye\n3. on\n3.a. rChamps\n3.b. rLanes\n3.c. matchmade\n4. off\n5. draft'
+	elif helpMessage == 'on':
+		#set the helpMessage to notes for the ON command here
+		print('on')
+	elif helpMessage == 'off':
+		#set the helpMessage to notes for the OFF command here
+		print('off')
+	elif helpMessage == 'aye':
+		#set the helpMessage to notes for the AYE command here
+		print('aye')
+	elif helpMessage == 'bye':
+		#set the helpMessage to notes for the BYE command here
+		print('bye')
+	elif helpMessage == 'rollCall':
+		#set the helpMessage to notes for the ROLLCALL command here
+		print('rollCall')
+	elif helpMessage == 'draft':
+		#set the helpMessage to notes for the DRAFT command here
+		print('draft')
+	elif helpMessage == 'roster':
+		#set the helpMessage to notes for the ROSTER command here
+		print('roster')
+	else:
+		helpMessage = 'Please specify a feature for inquiry. For more help, repeat this command with no arguments.'
+
+	await refBot.say(helpMessage)
+#_FOR MAX_#####################################################################################################
 @refBot.command()
 async def fuqU():
 	await refBot.say("What the fuck did you just fucking say about me, you little bitch? I\'ll have you know I graduated top of my class in the Navy Seals, and I\’ve been involved in numerous secret raids on Al-Quaeda, and I have over 300 confirmed kills. I am trained in gorilla warfare and I\’m the top sniper in the entire US armed forces. You are nothing to me but just another target. I will wipe you the fuck out with precision the likes of which has never been seen before on this Earth, mark my fucking words. You think you can get away with saying that shit to me over the Internet? Think again, fucker. As we speak I am contacting my secret network of spies across the USA and your IP is being traced right now so you better prepare for the storm, maggot. The storm that wipes out the pathetic little thing you call your life. You\’re fucking dead, kid. I can be anywhere, anytime, and I can kill you in over seven hundred ways, and that\’s just with my bare hands. Not only am I extensively trained in unarmed combat, but I have access to the entire arsenal of the United States Marine Corps and I will use it to its full extent to wipe your miserable ass off the face of the continent, you little shit. If only you could have known what unholy retribution your little \“clever\” comment was about to bring down upon you, maybe you would have held your fucking tongue. But you couldn\’t, you didn\’t, and now you\’re paying the price, you goddamn idiot. I will shit fury all over you and you will drown in it. You\’re fucking dead, kiddo.")
