@@ -1,2 +1,2 @@
-apiKey = 'Your API key here'
-botToken = 'Your bot token here'
+apiKey = 'RGAPI-e782b003-9cb9-4461-8e65-712449d6bbb1'
+botToken = 'MzMxOTMyNDQ3Mjk1OTMwMzY5.DGrhwg.46vWznibg0TDKEECvXca4UBUcZQ'

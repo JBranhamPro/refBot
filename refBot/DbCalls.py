@@ -15,9 +15,9 @@ def setupSummonerDb():
 	connSum.commit()
 
 def uploadSummoner(name, tier, rank, value):
-	curSum.execute("INSERT INTO summoners VALUES (:name, :tier, :rank, :value)", ("name":name, "tier":tier, "rank":rank, "value":value))
+	curSum.execute("INSERT INTO summoners VALUES (:name, :tier, :rank, :value)", {"name":name, "tier":tier, "rank":rank, "value":value})
 	connSum.commit()
 
-def getSummonerData(summonerName):
-	summonerData = curSum.execute("SELECT * FROM summoners WHERE name= :summonerName", ("summonerName":summonerName))
-	return summonerData
+def getSummoner(summonerName):
+	curSum.execute("SELECT * FROM summoners WHERE name=:summonerName", {"summonerName" : summonerName})
+	return curSum.fetchall()

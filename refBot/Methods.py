@@ -2,15 +2,26 @@ import APICalls
 a = APICalls
 import DbCalls
 d = DbCalls
+import Objects
+o = Objects
 
 def addNewSummoner(summonerName):
 	summonerDetails = getSummonerDetails(summonerName)
 	rankInfo = summonerDetails["rank"]
-	summonerValue = placeSummoner(rankInfo)
-	d.uploadSummoner(summonerName, rankInfo["tier"], rankInfo["rank"], summonerValue)
+	tier = rankInfo["tier"]
+	rank = rankInfo["rank"]
+	value = placeSummoner(rankInfo)
+
+	#summoner = [(summonerName, tier, rank, value)]
+	d.uploadSummoner(summonerName, tier, rank, value)
+	#summoner = o.Summoner(summonerName, tier, rank, value)
+	#d.uploadSummoner(summoner)
+
+def addSummonerToGame(summonerData):
+	summonerName = summonerData
 
 def getSummonerData(summonerName):
-	summonerData = d.getSummonerData(summonerData)
+	summonerData = d.getSummoner(summonerName)
 	return summonerData
 
 def getSummonerDetails(summonerName):
@@ -18,6 +29,13 @@ def getSummonerDetails(summonerName):
 	summonerRank = a.getRank(summonerName)
 	summonerDetails = {"data": summonerData, "rank": summonerRank}
 	return summonerDetails
+
+def onAyeCmd(summonerName):
+	summonerData = getSummonerData(summonerName)
+	if(summonerData):
+		addSummonerToGame(summonerData)
+	else:
+		addNewSummoner(summonerName)
 
 def placeSummoner(rankInfo):
 	tier = rankInfo["tier"]

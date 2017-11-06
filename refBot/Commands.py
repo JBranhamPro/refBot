@@ -28,6 +28,14 @@ async def add(*args):
 	m.addNewSummoner(summonerName)
 
 @refBot.command()
+async def aye(*args):
+	summonerName = ''
+	for ar in args:
+		summonerName += ar
+
+	m.onAyeCmd(summonerName)
+
+@refBot.command()
 async def e105r8945fjie48567rr():
 		d.setupSummonerDb()
 
@@ -37,7 +45,7 @@ async def get(*args):
 	for ar in args:
 		summonerName += ar
 
-	summonerData = d.getSummonerData(summonerName)
+	summonerData = d.getSummoner(summonerName)
 	await refBot.say(summonerData)
 
 refBot.run(Secrets.botToken)

@@ -21,15 +21,18 @@ def getRank(summonerName):
 	rawSummonerData = getSummoner(summonerName)
 	summonerId = str(rawSummonerData["id"])
 	
-	try:
-		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
-		rankInfoApiRequest = requests.get(rankInfoUrl)
-		rawRankInfoData = rankInfoApiRequest.json()
-		if rawSummonerData[1]:
-			rawRankInfo = rawRankInfoData[1]
-		else: 
-			rawRankInfo = rawRankInfoData[0]
-	except:
+	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+	rankInfoApiRequest = requests.get(rankInfoUrl)
+	rawRankInfoData = rankInfoApiRequest.json()
+	flexQData = rawRankInfoData[0]
+	soloQData = rawRankInfoData[1]
+	if soloQData:
+		print(soloQData)
+		rawRankInfo = soloQData
+	elif flexQData: 
+		print(flexQData)
+		rawRankInfo = flexQData
+	else:
 		rawRankInfo = {'tier':'UNRANKED', 'rank': '', 'leaguePoints': 0}
 
 	return rawRankInfo
