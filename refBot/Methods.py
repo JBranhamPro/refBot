@@ -5,18 +5,6 @@ d = DbCalls
 import Objects
 o = Objects
 
-def addNewSummoner(summonerName):
-	summonerDetails = getSummonerDetails(summonerName)
-	rankInfo = summonerDetails["rank"]
-	tier = rankInfo["tier"]
-	rank = rankInfo["rank"]
-	value = placeSummoner(rankInfo)
-
-	#summoner = [(summonerName, tier, rank, value)]
-	d.uploadSummoner(summonerName, tier, rank, value)
-	#summoner = o.Summoner(summonerName, tier, rank, value)
-	#d.uploadSummoner(summoner)
-
 def addSummonerToGame(summonerData):
 	summonerName = summonerData
 
@@ -30,12 +18,33 @@ def getSummonerDetails(summonerName):
 	summonerDetails = {"data": summonerData, "rank": summonerRank}
 	return summonerDetails
 
+def onAddCmd(summonerName):
+	summonerDetails = getSummonerDetails(summonerName)
+	rankInfo = summonerDetails["rank"]
+	tier = rankInfo["tier"]
+	rank = rankInfo["rank"]
+	value = placeSummoner(rankInfo)
+
+	#summoner = [(summonerName, tier, rank, value)]
+	d.uploadSummoner(summonerName, tier, rank, value)
+	#summoner = o.Summoner(summonerName, tier, rank, value)
+	#d.uploadSummoner(summoner)
+
 def onAyeCmd(summonerName):
 	summonerData = getSummonerData(summonerName)
 	if(summonerData):
 		addSummonerToGame(summonerData)
+		return summonerName + ' has joined the active players group.'
 	else:
 		addNewSummoner(summonerName)
+		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run the !aye command again to add them as an active player.'
+
+def onByeCmd(summonerName):
+	if activePlayers.count(summonerName) > 0:
+		del o.activePlayers[summonerName]
+		return 'Catch you later, ' + summonerName + '!'
+	else:
+		return 'Sorry, but ' + summonerName + ' is not an active player.'
 
 def placeSummoner(rankInfo):
 	tier = rankInfo["tier"]
