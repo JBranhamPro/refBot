@@ -25,7 +25,7 @@ async def add(*args):
 	for ar in args:
 		summonerName += ar
 
-	m.addNewSummoner(summonerName)
+	m.onAddCmd(summonerName)
 
 @refBot.command()
 async def aye(*args):
@@ -33,7 +33,17 @@ async def aye(*args):
 	for ar in args:
 		summonerName += ar
 
-	m.onAyeCmd(summonerName)
+	response = m.onAyeCmd(summonerName)
+	await refBot.say(resp)
+
+@refBot.command()
+async def bye(*args):
+	summonerName = ''
+	for ar in args:
+		summonerName += ar
+
+	response = m.onByeCmd(summonerName)
+	await refBot.say(response)
 
 @refBot.command()
 async def e105r8945fjie48567rr():
