@@ -18,6 +18,12 @@ def getSummonerDetails(summonerName):
 	summonerDetails = {"data": summonerData, "rank": summonerRank}
 	return summonerDetails
 
+def manualDraft():
+	print('Manual Draft initiated')
+
+def matchmadeDraft():
+	print('Matchmade Draft initiated')
+
 def onAddCmd(summonerName):
 	summonerDetails = getSummonerDetails(summonerName)
 	rankInfo = summonerDetails["rank"]
@@ -114,3 +120,15 @@ def placeSummoner(rankInfo):
 
 	summonerValue += rankInfo["leaguePoints"] * .0001
 	return summonerValue
+
+def randomDraft():
+	print('Random Draft initiated')
+
+def randomLanes():	
+	roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support']
+	playersDrafted = 0
+
+	while len(roles) > 0:
+		draftedRole = randint(0,len(roles) - 1)
+		roleOrder.append(roles[draftedRole])
+		del roles[draftedRole]

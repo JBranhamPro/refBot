@@ -46,6 +46,19 @@ async def bye(*args):
 	await refBot.say(response)
 
 @refBot.command()
+async def draft(typeOpt):
+	draftType = typeOpt.upper()
+
+	if draftType === 'MANUAL':
+		draftGame = m.manualDraft()
+	elif draftType === 'RANDOM':
+		draftGame = m.randomDraft()
+	elif draftType === 'MATCHMADE':
+		draftGame = m.matchmadeDraft()
+
+	await refBot.say(draftGame)
+
+@refBot.command()
 async def e105r8945fjie48567rr():
 		d.setupSummonerDb()
 
