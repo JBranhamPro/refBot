@@ -52,11 +52,11 @@ async def bye(*args):
 async def draft(typeOpt):
 	draftType = typeOpt.upper()
 
-	if draftType === 'MANUAL':
+	if draftType == 'MANUAL':
 		draftGame = m.manualDraft()
-	elif draftType === 'RANDOM':
+	elif draftType == 'RANDOM':
 		draftGame = m.randomDraft()
-	elif draftType === 'MATCHMADE':
+	elif draftType == 'MATCHMADE':
 		draftGame = m.matchmadeDraft()
 
 	await refBot.say(draftGame)
