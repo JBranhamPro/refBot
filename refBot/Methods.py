@@ -2,8 +2,8 @@ import APICalls
 a = APICalls
 import DbCalls
 d = DbCalls
-import Objects
-o = Objects
+import Globals
+g = Globals
 
 def addSummonerToGame(summonerData):
 	summonerName = summonerData
@@ -47,7 +47,7 @@ def onAyeCmd(summonerName):
 
 def onByeCmd(summonerName):
 	if activePlayers.count(summonerName) > 0:
-		del o.activePlayers[summonerName]
+		del g.activePlayers[summonerName]
 		return 'Catch you later, ' + summonerName + '!'
 	else:
 		return 'Sorry, but ' + summonerName + ' is not an active player.'
@@ -132,3 +132,6 @@ def randomLanes():
 		draftedRole = randint(0,len(roles) - 1)
 		roleOrder.append(roles[draftedRole])
 		del roles[draftedRole]
+
+def setDraftOptions(option, value):
+	g.draft.option = value

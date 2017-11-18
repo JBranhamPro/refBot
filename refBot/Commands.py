@@ -1,14 +1,17 @@
+# Imports required for Discord integration
 import discord
 from discord.ext import commands
 import logging
 logging.basicConfig(level=logging.INFO)
 import asyncio
+# Imports for all proprietary functionality needs
 import random
 from random import randint
 import operator
 import requests
 import json
 from itertools import permutations
+# Imports of all refBot files
 import APICalls
 a = APICalls
 import Methods
@@ -70,5 +73,9 @@ async def get(*args):
 
 	summonerData = d.getSummoner(summonerName)
 	await refBot.say(summonerData)
+
+@refBot.command()
+async def options(option, value):
+	m.setDraftOptions(option, value)
 
 refBot.run(Secrets.botToken)
