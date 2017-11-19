@@ -26,4 +26,4 @@ Team = []
 
 activePlayers = {}
 
-draft = DraftOptions(False, False, False, False)
+draft = DraftOptions(False, False, False)
