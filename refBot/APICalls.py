@@ -24,21 +24,24 @@ def getRank(summonerName):
 	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
 	rankInfoApiRequest = requests.get(rankInfoUrl)
 	rawRankInfoData = rankInfoApiRequest.json()
-	flexQData = rawRankInfoData[0]
-	soloQData = rawRankInfoData[1]
+
+	for queueData in rawRankInfoData:
+		if queueData["queueType"] == 'RANKED_SOLO_5x5':
+			soloQData = queueData
+		elif queueData["queueType"] == 'RANKED_FLEX_SR':
+			flexQData = queueData
+
 	if soloQData:
-		print(soloQData)
 		rawRankInfo = soloQData
-	elif flexQData: 
-		print(flexQData)
+	elif flexQData:
 		rawRankInfo = flexQData
 	else:
 		rawRankInfo = {'tier':'UNRANKED', 'rank': '', 'leaguePoints': 0}
 
 	return rawRankInfo
 
-def getSummoner(summonerName):
+def getSummonerDetails(summonerName):
 	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + apiKey
 	summonerApiRequest = requests.get(summonerUrl)
-	rawSummonerData = summonerApiRequest.json()
-	return rawSummonerData
+	summonerDetails = summonerApiRequest.json()
+	return summonerDetails
