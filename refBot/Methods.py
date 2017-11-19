@@ -19,11 +19,11 @@ def draft(draftType):
 	elif dType == 'RANDOM':
 		randomDraft()
 
-def getSummonerDetails(summonerName):
-	summonerData = a.getSummoner(summonerName)
+def getSummonerData(summonerName):
+	summonerDetails = a.getSummonerDetails(summonerName)
 	summonerRank = a.getRank(summonerName)
-	summonerDetails = {"data": summonerData, "rank": summonerRank}
-	return summonerDetails
+	summonerData = {"details": summonerDetails, "rank": summonerRank}
+	return summonerData
 
 # def matchmadeDraft(g.draft):
 # 	print('autoDraft has started')
@@ -68,20 +68,21 @@ def getSummonerDetails(summonerName):
 # 		teamB.append(player)
 
 def onAddCmd(summonerName):
-	summonerDetails = getSummonerDetails(summonerName)
-	rankInfo = summonerDetails["rank"]
+	summonerData = getSummonerData(summonerName)
+	rankInfo = summonerData["rank"]
 	tier = rankInfo["tier"]
 	rank = rankInfo["rank"]
 	value = placeSummoner(rankInfo)
 
 	#summoner = [(summonerName, tier, rank, value)]
-	d.uploadSummoner(summonerName, tier, rank, value)
+	if d.getSummoner() is None:
+		d.uploadSummoner(summonerName, tier, rank, value)
 	#summoner = o.Summoner(summonerName, tier, rank, value)
 	#d.uploadSummoner(summoner)
 
 def onAyeCmd(summonerName):
 	summoner = d.getSummoner(summonerName)
-	if(summoner):
+	if summoner:
 		addSummonerToGame(summoner)
 		return summonerName + ' has joined the active players group.'
 	else:
