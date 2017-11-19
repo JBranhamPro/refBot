@@ -57,7 +57,7 @@ async def draft(typeOpt):
 	await refBot.say(draftGame)
 
 @refBot.command()
-async def e105r8945fjie48567rr():
+async def setupSummonerDb():
 		d.setupSummonerDb()
 
 @refBot.command()
