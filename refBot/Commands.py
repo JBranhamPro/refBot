@@ -4,13 +4,6 @@ from discord.ext import commands
 import logging
 logging.basicConfig(level=logging.INFO)
 import asyncio
-# Imports for all proprietary functionality needs
-import random
-from random import randint
-import operator
-import requests
-import json
-from itertools import permutations
 # Imports of all refBot files
 import APICalls
 a = APICalls
