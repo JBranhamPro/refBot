@@ -1,14 +1,10 @@
+# Imports required for Discord integration
 import discord
 from discord.ext import commands
 import logging
 logging.basicConfig(level=logging.INFO)
 import asyncio
-import random
-from random import randint
-import operator
-import requests
-import json
-from itertools import permutations
+# Imports of all refBot files
 import APICalls
 a = APICalls
 import Methods
@@ -49,17 +45,12 @@ async def bye(*args):
 async def draft(typeOpt):
 	draftType = typeOpt.upper()
 
-	if draftType === 'MANUAL':
-		draftGame = m.manualDraft()
-	elif draftType === 'RANDOM':
-		draftGame = m.randomDraft()
-	elif draftType === 'MATCHMADE':
-		draftGame = m.matchmadeDraft()
+	m.draft(draftType)
 
 	await refBot.say(draftGame)
 
 @refBot.command()
-async def e105r8945fjie48567rr():
+async def setupSummonerDb():
 		d.setupSummonerDb()
 
 @refBot.command()
@@ -70,5 +61,9 @@ async def get(*args):
 
 	summonerData = d.getSummoner(summonerName)
 	await refBot.say(summonerData)
+
+@refBot.command()
+async def options(option, value):
+	m.setDraftOptions(option, value)
 
 refBot.run(Secrets.botToken)

@@ -2,52 +2,96 @@ import APICalls
 a = APICalls
 import DbCalls
 d = DbCalls
-import Objects
-o = Objects
+import Globals
+g = Globals
 
 def addSummonerToGame(summonerData):
 	summonerName = summonerData
 
+def draft(draftType):
+	g.draft.dType = draftType
+	dType = g.draft.dType
+
+	if dType == 'MANUAL':
+		manualDraft()
+	elif dType == 'MATCHMADE':
+		matchmadeDraft()
+	elif dType == 'RANDOM':
+		randomDraft()
+
 def getSummonerData(summonerName):
-	summonerData = d.getSummoner(summonerName)
+	summonerDetails = a.getSummonerDetails(summonerName)
+	summonerRank = a.getRank(summonerName)
+	summonerData = {"details": summonerDetails, "rank": summonerRank}
 	return summonerData
 
-def getSummonerDetails(summonerName):
-	summonerData = a.getSummoner(summonerName)
-	summonerRank = a.getRank(summonerName)
-	summonerDetails = {"data": summonerData, "rank": summonerRank}
-	return summonerDetails
+# def matchmadeDraft(g.draft):
+# 	print('autoDraft has started')
+# 	bestA = []
+# 	bestB = []
+# 	valueA = 0
+# 	valueB = 0
+# 	prevVal = 100
+# 	newVal = 0
 
-def manualDraft():
-	print('Manual Draft initiated')
+# 	for player in g.activePlayers:
+# 		else:
+# 			placeSumm(name)
+# 			print(name + " has been placed.")
 
-def matchmadeDraft():
-	print('Matchmade Draft initiated')
+# 	for permutation in permutations(playerNames, 5):
+# 		print(permutation)
+# 		teamA.clear()
+# 		teamB.clear()
+# 		valueA = 0
+# 		valueB = 0
+# 		tempRoster = littleLeaguers.copy()
+# 		for name in permutation:
+# 			teamA.append(name)
+# 			valueA += tempRoster[name]
+# 			del tempRoster[name]
+# 		for k, v in tempRoster.items():
+# 			teamB.append(k)
+# 			valueB += v
+# 		newVal = abs(valueA - valueB)
+# 		if newVal < prevVal:
+# 			prevVal = newVal
+# 			bestA = teamA.copy()
+# 			bestB = teamB.copy()
+
+# 	teamA.clear()
+# 	for player in bestA:
+# 		teamA.append(player)
+
+# 	teamB.clear()
+# 	for player in bestB:
+# 		teamB.append(player)
 
 def onAddCmd(summonerName):
-	summonerDetails = getSummonerDetails(summonerName)
-	rankInfo = summonerDetails["rank"]
+	summonerData = getSummonerData(summonerName)
+	rankInfo = summonerData["rank"]
 	tier = rankInfo["tier"]
 	rank = rankInfo["rank"]
 	value = placeSummoner(rankInfo)
 
 	#summoner = [(summonerName, tier, rank, value)]
-	d.uploadSummoner(summonerName, tier, rank, value)
+	if d.getSummoner() is None:
+		d.uploadSummoner(summonerName, tier, rank, value)
 	#summoner = o.Summoner(summonerName, tier, rank, value)
 	#d.uploadSummoner(summoner)
 
 def onAyeCmd(summonerName):
-	summonerData = getSummonerData(summonerName)
-	if(summonerData):
-		addSummonerToGame(summonerData)
+	summoner = d.getSummoner(summonerName)
+	if summoner:
+		addSummonerToGame(summoner)
 		return summonerName + ' has joined the active players group.'
 	else:
 		addNewSummoner(summonerName)
-		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run the !aye command again to add them as an active player.'
+		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run "!aye <summoner name>" again to add them as an active player.'
 
 def onByeCmd(summonerName):
 	if activePlayers.count(summonerName) > 0:
-		del o.activePlayers[summonerName]
+		del g.activePlayers[summonerName]
 		return 'Catch you later, ' + summonerName + '!'
 	else:
 		return 'Sorry, but ' + summonerName + ' is not an active player.'
@@ -121,9 +165,6 @@ def placeSummoner(rankInfo):
 	summonerValue += rankInfo["leaguePoints"] * .0001
 	return summonerValue
 
-def randomDraft():
-	print('Random Draft initiated')
-
 def randomLanes():	
 	roles = ['Top', 'Jungle', 'Mid', 'ADC', 'Support']
 	playersDrafted = 0
@@ -132,3 +173,6 @@ def randomLanes():
 		draftedRole = randint(0,len(roles) - 1)
 		roleOrder.append(roles[draftedRole])
 		del roles[draftedRole]
+
+def setDraftOptions(option, value):
+	g.draft.option = value
