@@ -30,7 +30,7 @@ async def aye(*args):
 		summonerName += ar
 
 	response = m.onAyeCmd(summonerName)
-	await refBot.say(resp)
+	await refBot.say(response)
 
 @refBot.command()
 async def bye(*args):
@@ -39,6 +39,7 @@ async def bye(*args):
 		summonerName += ar
 
 	response = m.onByeCmd(summonerName)
+
 	await refBot.say(response)
 
 @refBot.command()
@@ -51,7 +52,7 @@ async def draft(typeOpt):
 
 @refBot.command()
 async def setupSummonerDb():
-		d.setupSummonerDb()
+	d.setupSummonerDb()
 
 @refBot.command()
 async def get(*args):

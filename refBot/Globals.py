@@ -13,17 +13,15 @@ class Summoner:
 		self.rank = rank
 		self.value = value
 
-# class Team:
+class Team:
 
-# 	def __init__(self, p1, p2, p3, p4, p5):
-# 		self.p1 = 'player one'
-# 		self.p2 = 'player two'
-# 		self.p3 = 'player three'
-# 		self.p4 = 'player four'
-# 		self.p5 = 'player five'
+	def __init__(self, summoners, wins, losses, champions):
+		self.summoners = []
+		self.wins = wins
+		self.losses = losses
+		self.champions = champions
 
-Team = []
-
-activePlayers = {}
+activePlayers = []
+activeTeams = []
 
 draft = DraftOptions(False, False, False)
