@@ -5,9 +5,6 @@ d = DbCalls
 import Globals
 g = Globals
 
-def addSummonerToGame(summonerData):
-	summonerName = summonerData
-
 def draft(draftType):
 	g.draft.dType = draftType
 	dType = g.draft.dType
@@ -25,47 +22,36 @@ def getSummonerData(summonerName):
 	summonerData = {"details": summonerDetails, "rank": summonerRank}
 	return summonerData
 
-# def matchmadeDraft(g.draft):
-# 	print('autoDraft has started')
-# 	bestA = []
-# 	bestB = []
-# 	valueA = 0
-# 	valueB = 0
-# 	prevVal = 100
-# 	newVal = 0
+def matchmadeDraft():
+	teamA = []
+	teamB = []
+	valueA = 0
+	valueB = 0
+	prevValDiff = 100
+	newValDiff = 0
 
-# 	for player in g.activePlayers:
-# 		else:
-# 			placeSumm(name)
-# 			print(name + " has been placed.")
+	for permutation in permutations(g.activePlayers):
+		valueA = 0
+		valueB = 0
 
-# 	for permutation in permutations(playerNames, 5):
-# 		print(permutation)
-# 		teamA.clear()
-# 		teamB.clear()
-# 		valueA = 0
-# 		valueB = 0
-# 		tempRoster = littleLeaguers.copy()
-# 		for name in permutation:
-# 			teamA.append(name)
-# 			valueA += tempRoster[name]
-# 			del tempRoster[name]
-# 		for k, v in tempRoster.items():
-# 			teamB.append(k)
-# 			valueB += v
-# 		newVal = abs(valueA - valueB)
-# 		if newVal < prevVal:
-# 			prevVal = newVal
-# 			bestA = teamA.copy()
-# 			bestB = teamB.copy()
+		i = 0
+		while i < 10:
+			summonerValue = permutation[i].value
+			if i < 5:
+				valueA += summonerValue
+			else:
+				valueB += summonerValue
+			i += 1
 
-# 	teamA.clear()
-# 	for player in bestA:
-# 		teamA.append(player)
+		newValDiff = abs(valueA - valueB)
+		if newValDiff < prevValDiff:
+			prevValDiff = newValDiff
+			teamA = [permutation[0,1,2,3,4]]
+			teamB = [permutation[5,6,7,8,9]]
 
-# 	teamB.clear()
-# 	for player in bestB:
-# 		teamB.append(player)
+	newTeamA = g.Team(teamA)
+	newTeamB = g.Team(teamB)
+	activeTeams.append(newTeamA, newTeamB)
 
 def onAddCmd(summonerName):
 	summonerData = getSummonerData(summonerName)
@@ -83,10 +69,12 @@ def onAddCmd(summonerName):
 def onAyeCmd(summonerName):
 	summoner = d.getSummoner(summonerName)
 	if summoner:
-		addSummonerToGame(summoner)
+		g.activePlayers.append(summoner)
 		return summonerName + ' has joined the active players group.'
 	else:
 		addNewSummoner(summonerName)
+		summoner = d.getSummoner(summonerName)
+		g.activePlayers.append(summoner)
 		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run "!aye <summoner name>" again to add them as an active player.'
 
 def onByeCmd(summonerName):

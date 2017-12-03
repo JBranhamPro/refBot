@@ -4,13 +4,6 @@ from discord.ext import commands
 import logging
 logging.basicConfig(level=logging.INFO)
 import asyncio
-# Imports for all proprietary functionality needs
-import random
-from random import randint
-import operator
-import requests
-import json
-from itertools import permutations
 # Imports of all refBot files
 import APICalls
 a = APICalls
@@ -37,7 +30,7 @@ async def aye(*args):
 		summonerName += ar
 
 	response = m.onAyeCmd(summonerName)
-	await refBot.say(resp)
+	await refBot.say(response)
 
 @refBot.command()
 async def bye(*args):
@@ -46,6 +39,7 @@ async def bye(*args):
 		summonerName += ar
 
 	response = m.onByeCmd(summonerName)
+
 	await refBot.say(response)
 
 @refBot.command()
@@ -58,7 +52,8 @@ async def draft(typeOpt):
 
 @refBot.command()
 async def setupSummonerDb():
-		d.setupSummonerDb()
+
+	d.setupSummonerDb()
 
 @refBot.command()
 async def get(*args):

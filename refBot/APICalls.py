@@ -44,4 +44,5 @@ def getSummonerDetails(summonerName):
 	summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + apiKey
 	summonerApiRequest = requests.get(summonerUrl)
 	summonerDetails = summonerApiRequest.json()
+
 	return summonerDetails
