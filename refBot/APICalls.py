@@ -18,8 +18,8 @@ def getChampList():
 	return champList
 
 def getRank(summonerName):
-	rawSummonerData = getSummoner(summonerName)
-	summonerId = str(rawSummonerData["id"])
+	summonerDetails = getSummonerDetails(summonerName)
+	summonerId = str(summonerDetails["id"])
 	
 	rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
 	rankInfoApiRequest = requests.get(rankInfoUrl)

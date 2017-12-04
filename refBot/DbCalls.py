@@ -1,4 +1,6 @@
 import sqlite3
+import Globals
+g = Globals
 
 connSum = sqlite3.connect('Summoner.db')
 
@@ -20,4 +22,17 @@ def uploadSummoner(name, tier, rank, value):
 
 def getSummoner(summonerName):
 	curSum.execute("SELECT * FROM summoners WHERE name=:summonerName", {"summonerName" : summonerName})
-	return curSum.fetchall()
+	records = curSum.fetchall()
+	print('DbCalls records:', records)
+	try:
+		summoner = records[0]
+		print(summoner)
+	except:
+		return False
+
+	name = summoner[0]
+	tier = summoner[1]
+	rank = summoner[2]
+	value = summoner[3]
+	
+	return g.Summoner(name, tier, rank, value)

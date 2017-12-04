@@ -4,6 +4,7 @@ import DbCalls
 d = DbCalls
 import Globals
 g = Globals
+from itertools import permutations
 
 def draft(draftType):
 	g.draft.dType = draftType
@@ -36,7 +37,8 @@ def matchmadeDraft():
 
 		i = 0
 		while i < 10:
-			summonerValue = permutation[i].value
+			summoner = permutation[i]
+			summonerValue = summoner.value
 			if i < 5:
 				valueA += summonerValue
 			else:
@@ -46,36 +48,57 @@ def matchmadeDraft():
 		newValDiff = abs(valueA - valueB)
 		if newValDiff < prevValDiff:
 			prevValDiff = newValDiff
-			teamA = [permutation[0,1,2,3,4]]
-			teamB = [permutation[5,6,7,8,9]]
+
+			i = 0
+			for summoner in permutation:
+				if i < 5:
+					teamA.append(summoner)
+				else:
+					teamB.append(summoner)
 
 	newTeamA = g.Team(teamA)
 	newTeamB = g.Team(teamB)
-	activeTeams.append(newTeamA, newTeamB)
+	g.activeTeams.append(newTeamA, newTeamB)
+
+	msgTeamA = 'Team A is:\n\n'
+	i = 0
+	for summoner in teamA:
+		i+=1
+		msgToAppend = str(i) + '. ' + summoner.name + '\n'
+		teamA += msgToAppend
+
+	msgTeamA = 'Team B is:\n\n'
+	i = 0
+	for summoner in teamB:
+		i+=1
+		msgToAppend = str(i) + '. ' + summoner.name + '\n'
+		teamB += msgToAppend
 
 def onAddCmd(summonerName):
 	summonerData = getSummonerData(summonerName)
+	summonerDetails = summonerData["details"]
+	name = summonerDetails["name"]
 	rankInfo = summonerData["rank"]
 	tier = rankInfo["tier"]
 	rank = rankInfo["rank"]
 	value = placeSummoner(rankInfo)
 
-	#summoner = [(summonerName, tier, rank, value)]
-	if d.getSummoner() is None:
-		d.uploadSummoner(summonerName, tier, rank, value)
-	#summoner = o.Summoner(summonerName, tier, rank, value)
-	#d.uploadSummoner(summoner)
+	if d.getSummoner(summonerName) is None:
+		d.uploadSummoner(name, tier, rank, value)
 
 def onAyeCmd(summonerName):
 	summoner = d.getSummoner(summonerName)
-	if summoner:
+	print('Methods, Summoner is: ', summoner)
+	if summoner != True:
 		g.activePlayers.append(summoner)
-		return summonerName + ' has joined the active players group.'
+		return summoner.name + ' has joined the active players group.'
+	elif summoner == False:
+		onAddCmd(summonerName)
+		addedSummoner = d.getSummoner(summonerName)
+		g.activePlayers.append(summoner)
+		return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
 	else:
-		addNewSummoner(summonerName)
-		summoner = d.getSummoner(summonerName)
-		g.activePlayers.append(summoner)
-		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run "!aye <summoner name>" again to add them as an active player.'
+		print('Mistakes were truly made: ', summoner)
 
 def onByeCmd(summonerName):
 	if activePlayers.count(summonerName) > 0:
@@ -83,6 +106,26 @@ def onByeCmd(summonerName):
 		return 'Catch you later, ' + summonerName + '!'
 	else:
 		return 'Sorry, but ' + summonerName + ' is not an active player.'
+
+def onGetCmd(summonerName):
+	summoner = d.getSummoner(summonerName)
+	name = summoner.name
+	tier = summoner.tier
+	rank = summoner.rank
+	value = summoner.value
+
+	responseMsg = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ')'
+	return responseMsg
+
+def onRollCallCmd():
+	rollCallMsg = ''
+	i = 0
+	for summoner in g.activePlayers:
+		i+=1
+		msgToAppend = str(i) + '. ' + summoner.name + '\n'
+		rollCallMsg += msgToAppend
+
+	return rollCallMsg
 
 def placeSummoner(rankInfo):
 	tier = rankInfo["tier"]

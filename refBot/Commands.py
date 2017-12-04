@@ -46,13 +46,12 @@ async def bye(*args):
 async def draft(typeOpt):
 	draftType = typeOpt.upper()
 
-	m.draft(draftType)
+	draftGame = m.draft(draftType)
 
 	await refBot.say(draftGame)
 
 @refBot.command()
 async def setupSummonerDb():
-
 	d.setupSummonerDb()
 
 @refBot.command()
@@ -61,11 +60,17 @@ async def get(*args):
 	for ar in args:
 		summonerName += ar
 
-	summonerData = d.getSummoner(summonerName)
-	await refBot.say(summonerData)
+	#summonerData = d.getSummoner(summonerName)
+	responseMsg = m.onGetCmd(summonerName)
+	await refBot.say(responseMsg)
 
 @refBot.command()
 async def options(option, value):
 	m.setDraftOptions(option, value)
+
+@refBot.command()
+async def rollCall():
+	rollCallMsg = m.onRollCallCmd()
+	await refBot.say(rollCallMsg)
 
 refBot.run(Secrets.botToken)
