@@ -21,7 +21,8 @@ async def add(*args):
 	for ar in args:
 		summonerName += ar
 
-	m.onAddCmd(summonerName)
+	respone = m.onAddCmd(summonerName)
+	await refBot.say(respone)
 
 @refBot.command()
 async def aye(*args):
@@ -39,20 +40,14 @@ async def bye(*args):
 		summonerName += ar
 
 	response = m.onByeCmd(summonerName)
-
 	await refBot.say(response)
 
 @refBot.command()
 async def draft(typeOpt):
 	draftType = typeOpt.upper()
 
-	draftGame = m.draft(draftType)
-
-	await refBot.say(draftGame)
-
-@refBot.command()
-async def setupSummonerDb():
-	d.setupSummonerDb()
+	response = m.draft(draftType)
+	await refBot.say(response)
 
 @refBot.command()
 async def get(*args):
@@ -60,7 +55,6 @@ async def get(*args):
 	for ar in args:
 		summonerName += ar
 
-	#summonerData = d.getSummoner(summonerName)
 	responseMsg = m.onGetCmd(summonerName)
 	await refBot.say(responseMsg)
 
@@ -72,5 +66,13 @@ async def options(option, value):
 async def rollCall():
 	rollCallMsg = m.onRollCallCmd()
 	await refBot.say(rollCallMsg)
+
+@refBot.command()
+async def setupDb():
+	d.setupDb()
+
+@refBot.command()
+async def testDb():
+	d.insertTestData()
 
 refBot.run(Secrets.botToken)

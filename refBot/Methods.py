@@ -4,7 +4,7 @@ import DbCalls
 d = DbCalls
 import Globals
 g = Globals
-from itertools import permutations
+from itertools import combinations
 
 def draft(draftType):
 	g.draft.dType = draftType
@@ -17,82 +17,90 @@ def draft(draftType):
 	elif dType == 'RANDOM':
 		randomDraft()
 
-def getSummonerData(summonerName):
-	summonerDetails = a.getSummonerDetails(summonerName)
-	summonerRank = a.getRank(summonerName)
-	summonerData = {"details": summonerDetails, "rank": summonerRank}
-	return summonerData
-
 def matchmadeDraft():
-	teamA = []
-	teamB = []
-	valueA = 0
-	valueB = 0
+	bestTeamA = []
+	bestTeamB = []
 	prevValDiff = 100
 	newValDiff = 0
+	playerList = len(g.activePlayers)
+	teamSize = int(playerList/2)
 
-	for permutation in permutations(g.activePlayers):
+	for team in combinations(g.activePlayers, teamSize):
+		players = g.activePlayers.copy()
+		teamA = []
+		teamB = []
 		valueA = 0
 		valueB = 0
 
-		i = 0
-		while i < 10:
-			summoner = permutation[i]
-			summonerValue = summoner.value
-			if i < 5:
-				valueA += summonerValue
-			else:
-				valueB += summonerValue
-			i += 1
+		for player in team:
+			summonerValue = player.value
+			valueA += summonerValue
+			teamA.append(player)
+			players.remove(player)
+
+		for player in players:
+			summonerValue = player.value
+			valueB += summonerValue
+			teamB.append(player)
 
 		newValDiff = abs(valueA - valueB)
 		if newValDiff < prevValDiff:
 			prevValDiff = newValDiff
 
-			i = 0
-			for summoner in permutation:
-				if i < 5:
-					teamA.append(summoner)
-				else:
-					teamB.append(summoner)
+			bestTeamA.clear()
+			bestTeamB.clear()
 
-	newTeamA = g.Team(teamA)
-	newTeamB = g.Team(teamB)
-	g.activeTeams.append(newTeamA, newTeamB)
+			bestTeamA = teamA
+			bestTeamB = teamB
+
+	newTeamA = g.Team(bestTeamA, 0, 0, [])
+	newTeamB = g.Team(bestTeamB, 0, 0, [])
+	g.activeTeams.append(newTeamA)
+	g.activeTeams.append(newTeamB)
 
 	msgTeamA = 'Team A is:\n\n'
 	i = 0
-	for summoner in teamA:
+	for summoner in bestTeamA:
 		i+=1
-		msgToAppend = str(i) + '. ' + summoner.name + '\n'
-		teamA += msgToAppend
+		msgTeamA += str(i) + '. ' + summoner.name + '\n'
+	print(msgTeamA)
 
-	msgTeamA = 'Team B is:\n\n'
+	msgTeamB = 'Team B is:\n\n'
 	i = 0
-	for summoner in teamB:
+	for summoner in bestTeamB:
 		i+=1
-		msgToAppend = str(i) + '. ' + summoner.name + '\n'
-		teamB += msgToAppend
+		msgTeamB += str(i) + '. ' + summoner.name + '\n'
+	print(msgTeamB)
+
+	responseMsg = msgTeamA + '\n\n\n' + msgTeamB
+	print(responseMsg)
+	return responseMsg
 
 def onAddCmd(summonerName):
-	summonerData = getSummonerData(summonerName)
+	summonerData = a.getSummonerData(summonerName)
 	summonerDetails = summonerData["details"]
-	name = summonerDetails["name"]
 	rankInfo = summonerData["rank"]
+
+	name = summonerDetails["name"]
 	tier = rankInfo["tier"]
 	rank = rankInfo["rank"]
 	value = placeSummoner(rankInfo)
 
 	if d.getSummoner(summonerName) is None:
-		d.uploadSummoner(name, tier, rank, value)
+		response = d.uploadSummoner(name, tier, rank, value)
+		return response
 
 def onAyeCmd(summonerName):
+	if summonerName.upper() == 'ALL':
+		testAye()
+		return 'ALL command complete'
+
 	summoner = d.getSummoner(summonerName)
 	print('Methods, Summoner is: ', summoner)
-	if summoner != True:
+	if summoner != None:
 		g.activePlayers.append(summoner)
 		return summoner.name + ' has joined the active players group.'
-	elif summoner == False:
+	elif summoner is None:
 		onAddCmd(summonerName)
 		addedSummoner = d.getSummoner(summonerName)
 		g.activePlayers.append(summoner)
@@ -109,6 +117,7 @@ def onByeCmd(summonerName):
 
 def onGetCmd(summonerName):
 	summoner = d.getSummoner(summonerName)
+	
 	name = summoner.name
 	tier = summoner.tier
 	rank = summoner.rank
@@ -122,8 +131,7 @@ def onRollCallCmd():
 	i = 0
 	for summoner in g.activePlayers:
 		i+=1
-		msgToAppend = str(i) + '. ' + summoner.name + '\n'
-		rollCallMsg += msgToAppend
+		rollCallMsg += str(i) + '. ' + summoner.name + '\n'
 
 	return rollCallMsg
 
@@ -207,3 +215,8 @@ def randomLanes():
 
 def setDraftOptions(option, value):
 	g.draft.option = value
+
+def testAye():
+	testSet = ['The Real N3lo', 'Zaraedaria', 'bobmicbiong', 'llamamalicious', 'Alkiiron', 'Broken Leg Fish', 'TheUnsungHeroPt2', 'semland258', 'Gundâm','Zazul']
+	for summoner in testSet:
+		onAyeCmd(summoner)	
