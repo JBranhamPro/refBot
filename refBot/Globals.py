@@ -24,4 +24,4 @@ class Team:
 activePlayers = []
 activeTeams = []
 
-draft = DraftOptions(False, False, False)
+draft = DraftOptions('MANUAL', False, False)

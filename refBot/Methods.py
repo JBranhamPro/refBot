@@ -4,6 +4,7 @@ import DbCalls
 d = DbCalls
 import Globals
 g = Globals
+from itertools import combinations
 
 def draft(draftType):
 	g.draft.dType = draftType
@@ -16,66 +17,96 @@ def draft(draftType):
 	elif dType == 'RANDOM':
 		randomDraft()
 
-def getSummonerData(summonerName):
-	summonerDetails = a.getSummonerDetails(summonerName)
-	summonerRank = a.getRank(summonerName)
-	summonerData = {"details": summonerDetails, "rank": summonerRank}
-	return summonerData
-
 def matchmadeDraft():
-	teamA = []
-	teamB = []
-	valueA = 0
-	valueB = 0
+	bestTeamA = []
+	bestTeamB = []
 	prevValDiff = 100
 	newValDiff = 0
+	playerList = len(g.activePlayers)
+	teamSize = int(playerList/2)
 
-	for permutation in permutations(g.activePlayers):
+	for team in combinations(g.activePlayers, teamSize):
+		players = g.activePlayers.copy()
+		teamA = []
+		teamB = []
 		valueA = 0
 		valueB = 0
 
-		i = 0
-		while i < 10:
-			summonerValue = permutation[i].value
-			if i < 5:
-				valueA += summonerValue
-			else:
-				valueB += summonerValue
-			i += 1
+		for player in team:
+			summonerValue = player.value
+			valueA += summonerValue
+			teamA.append(player)
+			players.remove(player)
+
+		for player in players:
+			summonerValue = player.value
+			valueB += summonerValue
+			teamB.append(player)
 
 		newValDiff = abs(valueA - valueB)
 		if newValDiff < prevValDiff:
 			prevValDiff = newValDiff
-			teamA = [permutation[0,1,2,3,4]]
-			teamB = [permutation[5,6,7,8,9]]
 
-	newTeamA = g.Team(teamA)
-	newTeamB = g.Team(teamB)
-	activeTeams.append(newTeamA, newTeamB)
+			bestTeamA.clear()
+			bestTeamB.clear()
+
+			bestTeamA = teamA
+			bestTeamB = teamB
+
+	newTeamA = g.Team(bestTeamA, 0, 0, [])
+	newTeamB = g.Team(bestTeamB, 0, 0, [])
+	g.activeTeams.append(newTeamA)
+	g.activeTeams.append(newTeamB)
+
+	msgTeamA = 'Team A is:\n\n'
+	i = 0
+	for summoner in bestTeamA:
+		i+=1
+		msgTeamA += str(i) + '. ' + summoner.name + '\n'
+	print(msgTeamA)
+
+	msgTeamB = 'Team B is:\n\n'
+	i = 0
+	for summoner in bestTeamB:
+		i+=1
+		msgTeamB += str(i) + '. ' + summoner.name + '\n'
+	print(msgTeamB)
+
+	responseMsg = msgTeamA + '\n\n\n' + msgTeamB
+	print(responseMsg)
+	return responseMsg
 
 def onAddCmd(summonerName):
-	summonerData = getSummonerData(summonerName)
+	summonerData = a.getSummonerData(summonerName)
+	summonerDetails = summonerData["details"]
 	rankInfo = summonerData["rank"]
+
+	name = summonerDetails["name"]
 	tier = rankInfo["tier"]
 	rank = rankInfo["rank"]
 	value = placeSummoner(rankInfo)
 
-	#summoner = [(summonerName, tier, rank, value)]
-	if d.getSummoner() is None:
-		d.uploadSummoner(summonerName, tier, rank, value)
-	#summoner = o.Summoner(summonerName, tier, rank, value)
-	#d.uploadSummoner(summoner)
+	if d.getSummoner(summonerName) is None:
+		response = d.uploadSummoner(name, tier, rank, value)
+		return response
 
 def onAyeCmd(summonerName):
+	if summonerName.upper() == 'ALL':
+		testAye()
+		return 'ALL command complete'
+
 	summoner = d.getSummoner(summonerName)
-	if summoner:
+	print('Methods, Summoner is: ', summoner)
+	if summoner != None:
 		g.activePlayers.append(summoner)
-		return summonerName + ' has joined the active players group.'
+		return summoner.name + ' has joined the active players group.'
+	elif summoner is None:
+		onAddCmd(summonerName)
+		addedSummoner = d.getSummoner(summonerName)
+		g.activePlayers.append(summoner)
+		return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
 	else:
-		addNewSummoner(summonerName)
-		summoner = d.getSummoner(summonerName)
-		g.activePlayers.append(summoner)
-		return summonerName + ' was not found in the LittleLeague Summoner database. They have been added. Run "!aye <summoner name>" again to add them as an active player.'
+		print('Mistakes were truly made: ', summoner)
 
 def onByeCmd(summonerName):
 	if activePlayers.count(summonerName) > 0:
@@ -83,6 +114,26 @@ def onByeCmd(summonerName):
 		return 'Catch you later, ' + summonerName + '!'
 	else:
 		return 'Sorry, but ' + summonerName + ' is not an active player.'
+
+def onGetCmd(summonerName):
+	summoner = d.getSummoner(summonerName)
+	
+	name = summoner.name
+	tier = summoner.tier
+	rank = summoner.rank
+	value = summoner.value
+
+	responseMsg = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ')'
+	return responseMsg
+
+def onRollCallCmd():
+	rollCallMsg = ''
+	i = 0
+	for summoner in g.activePlayers:
+		i+=1
+		rollCallMsg += str(i) + '. ' + summoner.name + '\n'
+
+	return rollCallMsg
 
 def placeSummoner(rankInfo):
 	tier = rankInfo["tier"]
@@ -164,3 +215,8 @@ def randomLanes():
 
 def setDraftOptions(option, value):
 	g.draft.option = value
+
+def testAye():
+	testSet = ['The Real N3lo', 'Zaraedaria', 'bobmicbiong', 'llamamalicious', 'Alkiiron', 'Broken Leg Fish', 'TheUnsungHeroPt2', 'semland258', 'Gundâm','Zazul']
+	for summoner in testSet:
+		onAyeCmd(summoner)	
