@@ -33,12 +33,14 @@ def matchmadeDraft():
 		valueB = 0
 
 		for player in team:
+			print(player.name)
 			summonerValue = player.value
 			valueA += summonerValue
 			teamA.append(player)
 			players.remove(player)
 
 		for player in players:
+			print(player.name)
 			summonerValue = player.value
 			valueB += summonerValue
 			teamB.append(player)
@@ -109,11 +111,14 @@ def onAyeCmd(summonerName):
 		print('Mistakes were truly made: ', summoner)
 
 def onByeCmd(summonerName):
-	if activePlayers.count(summonerName) > 0:
-		del g.activePlayers[summonerName]
-		return 'Catch you later, ' + summonerName + '!'
-	else:
-		return 'Sorry, but ' + summonerName + ' is not an active player.'
+	name = a.getSummonerName(summonerName)
+
+	for summoner in g.activePlayers:
+		if name == summoner.name:
+			g.activePlayers.remove(summoner)
+			return 'Catch you later, ' + summonerName + '!'
+	
+	return summonerName + ' was not found in the list of active players.'
 
 def onGetCmd(summonerName):
 	summoner = d.getSummoner(summonerName)
