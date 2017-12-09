@@ -1,4 +1,3 @@
-refBot/Secrets.py
 refBot/LittleLeague.db
 *.pyc
 refBot/__pycache__/Secrets.cpython-36.pyc
