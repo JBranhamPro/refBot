@@ -6,8 +6,8 @@ m = Methods
 import APICalls
 a = APICalls
 
-#conn = sqlite3.connect('LittleLeague.db')
-conn = sqlite3.connect(':memory:')
+conn = sqlite3.connect('LittleLeague.db')
+#conn = sqlite3.connect(':memory:')
 
 cur = conn.cursor()
 

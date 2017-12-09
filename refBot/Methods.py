@@ -11,11 +11,14 @@ def draft(draftType):
 	dType = g.draft.dType
 
 	if dType == 'MANUAL':
-		manualDraft()
+		game = manualDraft()
+		return game
 	elif dType == 'MATCHMADE':
-		matchmadeDraft()
+		game = matchmadeDraft()
+		return game
 	elif dType == 'RANDOM':
-		randomDraft()
+		game = randomDraft()
+		return game
 
 def matchmadeDraft():
 	bestTeamA = []
@@ -97,23 +100,27 @@ def onAyeCmd(summonerName):
 
 	summoner = d.getSummoner(summonerName)
 	print('Methods, Summoner is: ', summoner)
-	if summoner != None:
+	if summoner:
 		g.activePlayers.append(summoner)
 		return summoner.name + ' has joined the active players group.'
 	elif summoner is None:
 		onAddCmd(summonerName)
 		addedSummoner = d.getSummoner(summonerName)
-		g.activePlayers.append(summoner)
+		g.activePlayers.append(addedSummoner)
 		return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
 	else:
 		print('Mistakes were truly made: ', summoner)
 
 def onByeCmd(summonerName):
-	if activePlayers.count(summonerName) > 0:
-		del g.activePlayers[summonerName]
-		return 'Catch you later, ' + summonerName + '!'
-	else:
-		return 'Sorry, but ' + summonerName + ' is not an active player.'
+	name = a.getSummonerName(summonerName)
+	summoner = d.getSummoner(name)
+	# if g.activePlayers.count(summoner) > 0:
+	# 	g.activePlayers.remove(summoner)
+	# 	return 'Catch you later, ' + name + '!'
+	# else:
+	# 	return 'Sorry, but ' + summonerName + ' is not an active player.'
+	g.activePlayers.remove(summoner)
+	return 'Catch you later, ' + name + '!'
 
 def onGetCmd(summonerName):
 	summoner = d.getSummoner(summonerName)

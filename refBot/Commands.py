@@ -59,6 +59,10 @@ async def get(*args):
 	await refBot.say(responseMsg)
 
 @refBot.command()
+async def open():
+	await refBot.say('@everyone I am now online and Little League is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
+
+@refBot.command()
 async def options(option, value):
 	m.setDraftOptions(option, value)
 
