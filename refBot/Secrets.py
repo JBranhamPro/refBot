@@ -1,2 +1,0 @@
-apiKey = 'RGAPI-ecc58486-9f59-4316-b8e7-54049f9c9498'
-botToken = 'MzMxOTMyNDQ3Mjk1OTMwMzY5.DQ9EmA.luDBude8aNaxnuN6ZUb4TUhLB6A'
