@@ -1,10 +1,8 @@
-import APICalls
 import requests
 import json
 import Secrets
 s = Secrets
 apiKey = s.apiKey
-from DbCalls import littleLeagueDb
 
 ############################################################################################################
 ##																										  ##
@@ -20,6 +18,7 @@ class summoner:
 			summonerDetails = summonerData["details"]
 			rankInfo = summonerData["rank"]
 
+			self.id = summonerDetails["id"]
 			self.name = summonerDetails["name"]
 			self.tier = rankInfo["tier"]
 			self.rank = rankInfo["rank"]
@@ -30,7 +29,11 @@ class summoner:
 			print(summonerData)
 			return 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
 
-	def getRank(self, summonerName):
+	def getId(self, summonerName=self.name):
+		summonerDetails = self.getSummonerDetails(summonerName)
+		return summonerDetails["id"]
+
+	def getRank(self, summonerName=self.name):
 		summonerDetails = self.getSummonerDetails(summonerName)
 		summonerId = str(summonerDetails["id"])
 		
@@ -125,13 +128,13 @@ class summoner:
 		summonerValue += rankInfo["leaguePoints"] * .0001
 		return summonerValue
 
-	def getSummonerData(self, summonerName):
+	def getSummonerData(self, summonerName=self.name):
 		summonerDetails = self.getSummonerDetails(summonerName)
 		summonerRank = self.getRank(summonerName)
 		summonerData = {"details": summonerDetails, "rank": summonerRank}
 		return summonerData
 
-	def getSummonerDetails(self, summonerName):
+	def getSummonerDetails(self, summonerName=self.name):
 		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + apiKey
 		summonerApiRequest = requests.get(summonerUrl)
 		summonerDetails = summonerApiRequest.json()

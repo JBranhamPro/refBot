@@ -5,9 +5,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import asyncio
 # Imports of all refBot files
-from APICalls import riotApi
-from DbCalls import littleLeagueDb
-db = littleLeagueDb
+import DbCalls
+db = DbCalls
 from Draft import draft
 import Secrets
 from Summoner import summoner
@@ -61,12 +60,14 @@ async def get(*args):
 
 	summoner = db.getSummonerData(summonerName)
 	
-	name = summoner.name
-	tier = summoner.tier
-	rank = summoner.rank
-	value = summoner.value
+	name = summonerData[1]
+	tier = summonerData[2]
+	rank = summonerData[3]
+	value = summoner[4]
+	primary = summoner[5]
+	secondary = summoner[6]
 
-	response = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ')'
+	response = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ') ' + primary + '/' + secondary
 	await refBot.say(response)
 
 @refBot.command()
