@@ -4,7 +4,7 @@ import Secrets
 s = Secrets
 apiKey = s.apiKey
 
-class draft:
+class Draft:
 	
 	def __init__(self, game):
 		

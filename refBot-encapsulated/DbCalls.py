@@ -10,17 +10,17 @@ conn = sqlite3.connect('LittleLeague.db')
 
 c = conn.cursor()
 
-def checkForSummoner(summoner):
-	summoner = getSummonerData(summoner.name)
+def checkForSummoner(summonerId):
+	summonerData = getSummonerData(summonerId)
 	print('d.checkForSummoner', summoner)
 
 	if summoner is None:
 		return None
 	else:
 		print(summoner)
+		return summonerData
 
-def getSummonerData(summoner):
-	summonerId = summoner.getId(summoner.name)
+def getSummonerData(summonerId):
 
 	c.execute("SELECT * FROM summoners WHERE id=:summonerId", {"summonerId" : summonerId})
 	records = c.fetchall()
@@ -112,13 +112,13 @@ def updateSummoner(summoner):
 	print('d.updateSummoner', summoner)
 
 def uploadSummoner(summoner):
-	existingSummoner = checkForSummoner(summoner)
+	existingSummoner = checkForSummoner(summoner.id)
 	s = summoner
 
 	if existingSummoner is None:
 		with conn:
 			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primary, :secondary)", 
-				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value})
+				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primary":summoner.primary, "secondary":summoner.secondary})
 
 		print('d.uploadSummoner :: added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'

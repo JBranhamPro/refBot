@@ -10,7 +10,7 @@ apiKey = s.apiKey
 ##																										  ##
 ############################################################################################################
 
-class summoner:
+class Summoner:
 
 	def __init__(self, summonerName):
 		summonerData = self.getSummonerData(summonerName)
@@ -175,7 +175,7 @@ class summoner:
 ##																										  ##
 ############################################################################################################
 
-class game:
+class Game:
 	from Draft import draft
 
 	def __init__(self):
@@ -187,36 +187,30 @@ class game:
 		self.rChamps = 0
 		self.rlanes = False
 
-	def addActiveSummoner(self, summonerName):
+	# def addActiveSummoner(self, summoner):
+	# 	activeSummoners = self.activeSummoners
+
+	# 	print('Methods, Summoner is: ', summoner)
+
+	# 	if summoner:
+	# 		activeSummoners.append(summoner)
+	# 		return summoner.name + ' has joined the active players group.'
+	# 	elif summoner is None:
+	# 		onAddCmd(summonerName)
+	# 		addedSummoner = d.getSummoner(summonerName)
+	# 		activeSummoners.append(addedSummoner)
+	# 		return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
+	# 	else:
+	# 		print('Mistakes were truly made: ', summoner)
+
+	def rmActiveSummoner(self, summoner):
 		activeSummoners = self.activeSummoners
 
-		if summonerName.upper() == 'ALL':
-			testAye()
-			return 'ALL command complete'
-
-		summoner = d.getSummoner(summonerName)
-		print('Methods, Summoner is: ', summoner)
-		if summoner:
-			activeSummoners.append(summoner)
-			return summoner.name + ' has joined the active players group.'
-		elif summoner is None:
-			onAddCmd(summonerName)
-			addedSummoner = d.getSummoner(summonerName)
-			activeSummoners.append(addedSummoner)
-			return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
+		if activeSummoners.count(summoner) > 0:
+			self.activeSummoners.remove(summoner)
+			return 'Catch you later, ' + summoner.name + '!'
 		else:
-			print('Mistakes were truly made: ', summoner)
-
-	def rmActiveSummoner(self, summonerName):
-		name = a.getSummonerName(summonerName)
-		activeSummoners = self.activeSummoners
-
-		for summoner in activeSummoners:
-			if name == summoner.name:
-				activeSummoners.remove(summoner)
-				return 'Catch you later, ' + summonerName + '!'
-		
-		return summonerName + ' was not found in the list of active players.'
+			return summoner.name + ' is not currently an active player.'
 
 	def rollCall(self):
 		rollCallMsg = ''
