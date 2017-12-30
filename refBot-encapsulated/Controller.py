@@ -8,8 +8,7 @@ import asyncio
 import requests
 import json
 # Imports of all refBot files
-import DbCalls
-db = DbCalls
+import DbCalls as db
 from Draft import Draft
 import Secrets
 import Summoner

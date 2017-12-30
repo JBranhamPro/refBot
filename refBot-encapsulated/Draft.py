@@ -1,7 +1,6 @@
 import requests
 import json
-import Secrets
-s = Secrets
+import Secrets as s
 apiKey = s.apiKey
 
 class Draft:

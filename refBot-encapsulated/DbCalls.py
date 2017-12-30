@@ -1,8 +1,7 @@
 import sqlite3
 import requests
 import json
-import Secrets
-s = Secrets
+import Secrets as s
 apiKey = s.apiKey
 
 conn = sqlite3.connect('LittleLeague.db')
