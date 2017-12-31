@@ -58,11 +58,6 @@ async def bye(*args):
 	await refBot.say(response)
 
 @refBot.command()
-async def start():
-	response = draft.start()
-	await refBot.say(response)
-
-@refBot.command()
 async def get(*args):
 	summonerName = ''
 	for ar in args:
@@ -98,9 +93,5 @@ async def rollCall():
 @refBot.command()
 async def setupDb():
 	db.setupDb()
-
-@refBot.command()
-async def testDb():
-	db.insertTestData()
 
 refBot.run(Secrets.botToken)

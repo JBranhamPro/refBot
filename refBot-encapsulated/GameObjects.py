@@ -186,22 +186,6 @@ class Game:
 		self.rChamps = 0
 		self.rlanes = False
 
-	# def addActiveSummoner(self, summoner):
-	# 	activeSummoners = self.activeSummoners
-
-	# 	print('Methods, Summoner is: ', summoner)
-
-	# 	if summoner:
-	# 		activeSummoners.append(summoner)
-	# 		return summoner.name + ' has joined the active players group.'
-	# 	elif summoner is None:
-	# 		onAddCmd(summonerName)
-	# 		addedSummoner = d.getSummoner(summonerName)
-	# 		activeSummoners.append(addedSummoner)
-	# 		return addedSummoner.name + ' was not found in the LittleLeague Summoner database. They have been added and are now an active player.'
-	# 	else:
-	# 		print('Mistakes were truly made: ', summoner)
-
 	def rmActiveSummoner(self, summoner):
 		activeSummoners = self.activeSummoners
 
