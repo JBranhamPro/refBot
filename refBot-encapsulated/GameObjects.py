@@ -28,11 +28,11 @@ class Summoner:
 			print(summonerData)
 			return 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
 
-	def getId(self, summonerName=self.name):
+	def getId(self, summonerName):
 		summonerDetails = self.getSummonerDetails(summonerName)
 		return summonerDetails["id"]
 
-	def getRank(self, summonerName=self.name):
+	def getRank(self, summonerName):
 		summonerDetails = self.getSummonerDetails(summonerName)
 		summonerId = str(summonerDetails["id"])
 		
@@ -124,16 +124,16 @@ class Summoner:
 		elif tier == "CHALLENGER":
 			rankValue = 100
 
-		summonerValue += rankInfo["leaguePoints"] * .0001
-		return summonerValue
+		rankValue += rankInfo["leaguePoints"] * .0001
+		return rankValue
 
-	def getSummonerData(self, summonerName=self.name):
+	def getSummonerData(self, summonerName):
 		summonerDetails = self.getSummonerDetails(summonerName)
 		summonerRank = self.getRank(summonerName)
 		summonerData = {"details": summonerDetails, "rank": summonerRank}
 		return summonerData
 
-	def getSummonerDetails(self, summonerName=self.name):
+	def getSummonerDetails(self, summonerName):
 		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + apiKey
 		summonerApiRequest = requests.get(summonerUrl)
 		summonerDetails = summonerApiRequest.json()
@@ -145,7 +145,7 @@ class Summoner:
 		def errorReport(userInput):
 			return str(userInput) + ' is not a valid option. Please select one of the following: TOP, JNG, MID, ADC, SUP'
 
-		def changeRole(choice, role)
+		def changeRole(choice, role):
 			if choice == 'TOP':
 				role = choice
 			elif choice == 'JNG':
@@ -175,13 +175,12 @@ class Summoner:
 ############################################################################################################
 
 class Game:
-	from Draft import draft
 
 	def __init__(self):
 		self.startTime = None
 		self.activeSummoners = []
 		self.activeTeams = []
-		self.draft = draft(self)
+		self.draft = Draft(self)
 		self.type = 'MANUAL'
 		self.rChamps = 0
 		self.rlanes = False
@@ -231,3 +230,116 @@ class Game:
 			self.matchmadeDraft()
 		elif dType == 'RANDOM':
 			self.randomDraft()
+
+############################################################################################################
+##																										  ##
+##												DRAFT OBJECT											  ##
+##																										  ##
+############################################################################################################
+
+class Draft:
+	
+	def __init__(self, game):
+		self.Game = game
+
+	def getChampList(self):
+		champUrl = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=' + apiKey
+		champApiRequest = requests.get(champUrl)
+		rawChampData = champApiRequest.json()
+		champData = rawChampData["data"]
+		champList = []
+
+		for champEntry in champData:
+			champ = champData[champEntry]
+			champList.append(champ["name"])
+
+		return champList
+
+	def matchmadeDraft(self):
+		game = self.Game
+		activeSummoners = game.activeSummoners
+		activeTeams = game.activeTeams
+		bestTeamA = []
+		bestTeamB = []
+		prevValDiff = 100
+		newValDiff = 0
+		numOfSumms = len(activeSummoners)
+		teamSize = int(numOfSumms/2)
+
+		for team in combinations(activeSummoners, teamSize):
+			players = activeSummoners.copy()
+			teamA = []
+			teamB = []
+			valueA = 0
+			valueB = 0
+
+			for player in team:
+				print(player.name)
+				summonerValue = player.value
+				valueA += summonerValue
+				teamA.append(player)
+				players.remove(player)
+
+			for player in players:
+				print(player.name)
+				summonerValue = player.value
+				valueB += summonerValue
+				teamB.append(player)
+
+			newValDiff = abs(valueA - valueB)
+			if newValDiff < prevValDiff:
+				prevValDiff = newValDiff
+
+				bestTeamA.clear()
+				bestTeamB.clear()
+
+				bestTeamA = teamA
+				bestTeamB = teamB
+
+		# newTeamA = g.Team(bestTeamA, 0, 0, [])
+		# newTeamB = g.Team(bestTeamB, 0, 0, [])
+		# activeTeams.append(newTeamA)
+		# activeTeams.append(newTeamB)
+
+		msgTeamA = 'Team A is:\n\n'
+		i = 0
+		for summoner in bestTeamA:
+			i+=1
+			msgTeamA += str(i) + '. ' + summoner.name + '\n'
+
+		if game.rChamps:
+			msgTeamA += 'The champion pool for Team A is: ' + '\n' + randomChamps(rChamps)
+		print(msgTeamA)
+
+		msgTeamB = 'Team B is:\n\n'
+		i = 0
+		for summoner in bestTeamB:
+			i+=1
+			msgTeamB += str(i) + '. ' + summoner.name + '\n'
+
+		if game.rChamps:
+			msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
+		print(msgTeamB)
+
+		responseMsg = msgTeamA + '\n\n\n' + msgTeamB
+		print(responseMsg)
+		return responseMsg
+
+	def randomChamps(self, poolSize):
+		from random import randint
+
+		champList = self.getChampList()
+		champPool = []
+
+		champsDrafted = 0
+		while champDrafted < poolSize:
+			champ = champList[randint(0, len(champList))]
+			champPool.append(champ)
+			champList.remove(champ)
+			champsDrafted+=1
+
+		responseMsg = ''
+
+		for champ in champPool:
+			champ += '\n'
+			responseMsg += champ

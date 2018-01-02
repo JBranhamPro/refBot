@@ -9,17 +9,16 @@ import requests
 import json
 # Imports of all refBot files
 import DbCalls as db
-from Draft import Draft
 import Secrets
-import Summoner
+import GameObjects as go 
 
-game = GameObjects.Game()
+game = go.Game()
 
 refBot = commands.Bot(command_prefix="!")
 
 def getSummonerId(summonerName):
 	requestUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + Secrets.apiKey
-	getRequest = requests.get(summonerUrl)
+	getRequest = requests.get(requestUrl)
 	summonerDetails = getRequest.json()
 	return summonerDetails["id"]
 
@@ -29,8 +28,8 @@ async def aye(*args):
 	for ar in args:
 		summonerName += ar
 
-	summoner = GameObjects.Summoner(summonerName)
-	activePlayers = game.activeSummoners
+	summoner = go.Summoner(summonerName)
+	activeSummoners = game.activeSummoners
 
 	for player in activeSummoners:
 		if player.id == summoner.id:
@@ -65,14 +64,14 @@ async def get(*args):
 
 	summonerId = getSummonerId(summonerName)
 
-	summonerData = db.getSummonerData(summoner)
+	summonerData = db.getSummonerData(summonerId)
 	
 	name = summonerData[1]
 	tier = summonerData[2]
 	rank = summonerData[3]
-	value = summoner[4]
-	primary = summoner[5]
-	secondary = summoner[6]
+	value = summonerData[4]
+	primary = summonerData[5]
+	secondary = summonerData[6]
 
 	response = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ') ' + primary + '/' + secondary
 	await refBot.say(response)
@@ -84,6 +83,22 @@ async def open():
 @refBot.command()
 async def options(option, value):
 	m.setDraftOptions(option, value)
+
+@refBot.command()
+async def roles(summonerName, primary, secondary):
+	summonerId = getSummonerId(summonerName)
+	primary = primary.upper()
+	secondary = secondary.upper()
+	db.updateSummonerRoles(summonerId, primary, secondary)
+
+	summonerData = db.getSummonerData(summonerId)
+	name = summonerData[1]
+	primary = summonerData[5]
+	secondary = summonerData[6]
+
+	response = name + ' : ' + primary + '/' + secondary
+
+	return response
 
 @refBot.command()
 async def rollCall():

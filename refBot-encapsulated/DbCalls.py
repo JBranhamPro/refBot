@@ -4,26 +4,26 @@ import json
 import Secrets as s
 apiKey = s.apiKey
 
-conn = sqlite3.connect('LittleLeague.db')
-#conn = sqlite3.connect(':memory:')
+#conn = sqlite3.connect('LittleLeague.db')
+conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
 
 def checkForSummoner(summonerId):
 	summonerData = getSummonerData(summonerId)
-	print('d.checkForSummoner', summoner)
+	print('d.checkForSummoner -->', summonerData)
 
-	if summoner is None:
+	if summonerData is None:
 		return None
 	else:
-		print(summoner)
+		print(summonerData)
 		return summonerData
 
 def getSummonerData(summonerId):
 
 	c.execute("SELECT * FROM summoners WHERE id=:summonerId", {"summonerId" : summonerId})
 	records = c.fetchall()
-	print('d.getSummoner :: DbCalls records:', records)
+	print('d.getSummoner --> DbCalls records:', records)
 
 	try:
 		summonerData = records[0]
@@ -39,8 +39,8 @@ def setupDb():
 					tier text,
 					rank text,
 					value real,
-					primary text,
-					secondary text
+					primaryRole text,
+					secondaryRole text
 					)""")
 
 	c.execute("""CREATE TABLE teams (
@@ -82,7 +82,7 @@ def setupDb():
 	conn.commit()
 
 def updateSummoner(summoner):
-	summonerData = getSummonerData(summoner.name)
+	summonerData = getSummonerData(summoner.id)
 	
 	if summonerData[1] != summoner.name:
 		c.execute("""UPDATE summoners SET name = :name WHERE id = :id""", 
@@ -100,15 +100,14 @@ def updateSummoner(summoner):
 		c.execute("""UPDATE summoners SET value = :value WHERE id = :id""", 
 			{'value': summoner.value, 'id': summoner.id})
 
-	if summonerData[5] != summoner.primary:
-		c.execute("""UPDATE summoners SET primary = :primary WHERE id = :id""", 
-			{'primary': summoner.primary, 'id': summoner.id})
+	print('d.updateSummoner -->', summoner)
 
-	if summonerData[6] != summoner.secondary:
-		c.execute("""UPDATE summoners SET secondary = :secondary WHERE id = :id""", 
-			{'secondary': summoner.secondary, 'id': summoner.id})
+def updateSummonerRoles(summonerId, primary, secondary):
+	c.execute("""UPDATE summoners SET primaryRole = :primary WHERE id = :id""", 
+		{'primary': primary, 'id': summonerId})
 
-	print('d.updateSummoner', summoner)
+	c.execute("""UPDATE summoners SET secondaryRole = :secondary WHERE id = :id""", 
+		{'secondary': secondary, 'id': summonerId})
 
 def uploadSummoner(summoner):
 	existingSummoner = checkForSummoner(summoner.id)
@@ -116,10 +115,10 @@ def uploadSummoner(summoner):
 
 	if existingSummoner is None:
 		with conn:
-			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primary, :secondary)", 
-				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primary":summoner.primary, "secondary":summoner.secondary})
+			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole)", 
+				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary})
 
-		print('d.uploadSummoner :: added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
+		print('d.uploadSummoner --> added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'
 	elif existingSummoner:
 		updateSummoner(existingSummoner)
