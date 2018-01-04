@@ -40,11 +40,13 @@ def setupDb():
 					rank text,
 					value real,
 					primaryRole text,
-					secondaryRole text
+					secondaryRole text,
+					gameId text
 					)""")
 
 	c.execute("""CREATE TABLE teams (
-					teamId int,
+					gameId text,
+					teamId text,
 					teamName text,
 					teamValue real,
 

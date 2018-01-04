@@ -1,5 +1,6 @@
 import requests
 import json
+import uuid
 import Secrets as s
 apiKey = s.apiKey
 
@@ -177,6 +178,7 @@ class Summoner:
 class Game:
 
 	def __init__(self):
+		self.id = uuid.uuid4()
 		self.startTime = None
 		self.activeSummoners = []
 		self.activeTeams = []
@@ -185,14 +187,27 @@ class Game:
 		self.rChamps = 0
 		self.rlanes = False
 
-	def rmActiveSummoner(self, summoner):
+	def addSummoner(self, summoner):
 		activeSummoners = self.activeSummoners
 
-		if activeSummoners.count(summoner) > 0:
-			self.activeSummoners.remove(summoner)
-			return 'Catch you later, ' + summoner.name + '!'
-		else:
-			return summoner.name + ' is not currently an active player.'
+		for player in activeSummoners:
+			if player.id == summoner.id:
+				await refBot.say(summoner.name + ' is already an active player.')
+				print(player.id, summoner.id)
+				return False
+
+		activeSummoners.append(summoner)
+		return True
+
+	def rmSummoner(self, summonerId):
+		activeSummoners = self.activeSummoners
+
+		for summoner in activeSummoners:
+			if summoner.id == summonerId:
+				activeSummoners.remove(summoner)
+				return 'Catch you later, ' + summoner.name + '!'
+
+		return summoner.name + ' is not currently an active player.'
 
 	def rollCall(self):
 		rollCallMsg = ''

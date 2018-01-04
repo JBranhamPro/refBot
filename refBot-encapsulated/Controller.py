@@ -12,7 +12,7 @@ import DbCalls as db
 import Secrets
 import GameObjects as go 
 
-game = go.Game()
+activeGames = []
 
 refBot = commands.Bot(command_prefix="!")
 
@@ -29,17 +29,17 @@ async def aye(*args):
 		summonerName += ar
 
 	summoner = go.Summoner(summonerName)
-	activeSummoners = game.activeSummoners
 
-	for player in activeSummoners:
-		if player.id == summoner.id:
-			await refBot.say(summoner.name + ' is already an active player.')
-			return print(player.id, summoner.id)
-
-	activeSummoners.append(summoner)
-
-	response = db.uploadSummoner(summoner)
-	await refBot.say(response)
+	for game in activeGames:
+		activeSummoners = game.activeSummoners
+		if len(activeSummoners) < 10:
+			added = game.addSummoner(summoner)
+			if added:
+				response = db.uploadSummoner(summoner)
+				await refBot.say(response)
+				return
+			else:
+				await refBot.say(summoner.name + ' is already an active player.')
 
 @refBot.command()
 async def bye(*args):
@@ -49,12 +49,25 @@ async def bye(*args):
 
 	summonerId = getSummonerId(summonerName)
 
-	for player in game.activePlayers:
-		if player.id == summonerId:
-			summoner = player
+	for game in activeGames:
+		activeSummoners = game.activeSummoners
+		
+		def removalCheck():
+			for summoner in activeSummoners:
+				if summoner.id == summonerId:
+					response = game.rmSummoner(summonerId)
+					await refBot.say(response)
+					return True
 
-	response = game.rmActiveSummoner(summoner)
-	await refBot.say(response)
+			return False
+
+		global 
+		removalCheck = removeSummoner()
+		if removalCheck:
+			return
+
+	if removalCheck == False:
+		await refBot.say(summonerName + ' is not currently an active player.')
 
 @refBot.command()
 async def get(*args):
@@ -78,6 +91,10 @@ async def get(*args):
 
 @refBot.command()
 async def open():
+	game = go.Game()
+
+	activeGames.append(game)
+
 	await refBot.say('@everyone I am now online and Little League is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
 
 @refBot.command()
