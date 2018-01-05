@@ -82,27 +82,35 @@ def setupDb():
 					)""")
 
 	conn.commit()
+	print('DbCalls --> setupDb : database has been established')
 
 def updateSummoner(summoner):
 	summonerData = getSummonerData(summoner.id)
-	
-	if summonerData[1] != summoner.name:
-		c.execute("""UPDATE summoners SET name = :name WHERE id = :id""", 
-			{'name': summoner.name, 'id': summoner.id})
-	
-	if summonerData[2] != summoner.tier:
-		c.execute("""UPDATE summoners SET tier = :tier WHERE id = :id""", 
-			{'tier': summoner.tier, 'id': summoner.id})
-	
-	if summonerData[3] != summoner.rank:
-		c.execute("""UPDATE summoners SET rank = :rank WHERE id = :id""", 
-			{'rank': summoner.rank, 'id': summoner.id})
-	
-	if summonerData[4] != summoner.value:
-		c.execute("""UPDATE summoners SET value = :value WHERE id = :id""", 
-			{'value': summoner.value, 'id': summoner.id})
 
-	print('d.updateSummoner -->', summoner)
+	if summonerData:
+		if summonerData[1] != summoner.name:
+			c.execute("""UPDATE summoners SET name = :name WHERE id = :id""", 
+				{'name': summoner.name, 'id': summoner.id})
+		
+		if summonerData[2] != summoner.tier:
+			c.execute("""UPDATE summoners SET tier = :tier WHERE id = :id""", 
+				{'tier': summoner.tier, 'id': summoner.id})
+		
+		if summonerData[3] != summoner.rank:
+			c.execute("""UPDATE summoners SET rank = :rank WHERE id = :id""", 
+				{'rank': summoner.rank, 'id': summoner.id})
+		
+		if summonerData[4] != summoner.value:
+			c.execute("""UPDATE summoners SET value = :value WHERE id = :id""", 
+				{'value': summoner.value, 'id': summoner.id})
+
+		if summonerData[7] != summoner.gameId:
+			c.execute("""UPDATE summoners SET gameId =:gameId WHERE id = :id""",
+				{'gameId': summoner.gameId, 'id': summoner.id})
+
+		print('d.updateSummoner -->', summoner)
+	else:
+		print('DbCalls --> updateSummoner : No summoner data available for ' + summoner.name)
 
 def updateSummonerRoles(summonerId, primary, secondary):
 	c.execute("""UPDATE summoners SET primaryRole = :primary WHERE id = :id""", 
@@ -117,8 +125,8 @@ def uploadSummoner(summoner):
 
 	if existingSummoner is None:
 		with conn:
-			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole)", 
-				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary})
+			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole, :gameId)", 
+				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary, "gameId":summoner.gameId})
 
 		print('d.uploadSummoner --> added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'

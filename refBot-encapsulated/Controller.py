@@ -23,57 +23,78 @@ def getSummonerId(summonerName):
 	return summonerDetails["id"]
 
 @refBot.command()
-async def aye(*args):
+async def aye(gameIndex=None, *nameInput):
 	summonerName = ''
-	for ar in args:
-		summonerName += ar
+	for part in nameInput:
+		summonerName += part
 
 	summoner = go.Summoner(summonerName)
 
-	for game in activeGames:
-		activeSummoners = game.activeSummoners
-		if len(activeSummoners) < 10:
-			added = game.addSummoner(summoner)
-			if added:
-				response = db.uploadSummoner(summoner)
-				await refBot.say(response)
-				return
-			else:
-				await refBot.say(summoner.name + ' is already an active player.')
+	response = summoner.name + ' is already an active player.'
+
+	if summoner.gameId != 'inactive':
+		await refBot.say(response)
+
+	if gameIndex is None:
+		for game in activeGames:
+			activeSummoners = game.activeSummoners
+			if len(activeSummoners) < 10:
+				added = game.addSummoner(summoner)
+				if added:
+					response = db.uploadSummoner(summoner)
+					await refBot.say(response)
+					return
+				else:
+					await refBot.say(response)
+				break 
+
+		await refBot.say('There are no active games in which to add ' + summoner.name + '. Use the open command to start a new game.')
+	else:
+		game = activeGames[gameIndex]
+
+		if game is None:
+			await refBot.say('There is no game at index: ' + str(gameIndex))
+		else:
+			game.addSummoner(summoner)
 
 @refBot.command()
-async def bye(*args):
+async def bye(*nameInput):
 	summonerName = ''
-	for ar in args:
-		summonerName += ar
+	for part in nameInput:
+		summonerName += part
+
+	failResponse = summonerName + ' is not currently an active player.'
 
 	summonerId = getSummonerId(summonerName)
+	summonerData = db.getSummonerData(summonerId)
+	if summonerData:
+		summonerGame = summonerData[7]
+	else:
+		await refBot.say(failResponse)
+		return
 
-	for game in activeGames:
-		activeSummoners = game.activeSummoners
-		
-		def removalCheck():
-			for summoner in activeSummoners:
-				if summoner.id == summonerId:
-					response = game.rmSummoner(summonerId)
-					await refBot.say(response)
-					return True
-
-			return False
-
-		global 
-		removalCheck = removeSummoner()
-		if removalCheck:
-			return
-
-	if removalCheck == False:
-		await refBot.say(summonerName + ' is not currently an active player.')
+	if summonerGame:
+		for game in activeGames:
+			if game == summonerGame:
+				response = game.rmSummoner(summonerId)
+				await refBot.say(response)
+				return
+	else:
+		await refBot.say(failResponse)
 
 @refBot.command()
-async def get(*args):
+async def close(gameIndex):
+	try:
+		activeGames.remove(gameIndex)
+		await refBot.say('Game ' + gameIndex + ' has been closed. You may give the open command if you would like to start a new one.')
+	except:
+		await refBot.say('The game in question could not be found.')
+
+@refBot.command()
+async def get(*nameInput):
 	summonerName = ''
-	for ar in args:
-		summonerName += ar
+	for part in nameInput:
+		summonerName += part
 
 	summonerId = getSummonerId(summonerName)
 
@@ -95,14 +116,18 @@ async def open():
 
 	activeGames.append(game)
 
-	await refBot.say('@everyone I am now online and Little League is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
+	await refBot.say('@everyone A new game is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
 
 @refBot.command()
 async def options(option, value):
 	m.setDraftOptions(option, value)
 
 @refBot.command()
-async def roles(summonerName, primary, secondary):
+async def roles(primary, secondary, *nameInput):
+	summonerName = ''
+	for part in nameInput:
+		summonerName += part
+
 	summonerId = getSummonerId(summonerName)
 	primary = primary.upper()
 	secondary = secondary.upper()
@@ -119,11 +144,21 @@ async def roles(summonerName, primary, secondary):
 
 @refBot.command()
 async def rollCall():
-	response = draft.rollCall()
-	await refBot.say(response)
+	if activeGames:
+		for game in activeGames:
+			response = 'Game ' + str(activeGames.index(game)) + ': ' + ' -->\n'
+			response += game.rollCall()
+
+		await refBot.say(response)
+	else:
+		await refBot.say('There are no games currently open. Give the open command to start a new one.')
 
 @refBot.command()
 async def setupDb():
 	db.setupDb()
+
+@refBot.command()
+async def test():
+	print(activeGames[0])
 
 refBot.run(Secrets.botToken)

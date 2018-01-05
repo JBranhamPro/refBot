@@ -1,6 +1,7 @@
 import requests
 import json
 import uuid
+import DbCalls as db
 import Secrets as s
 apiKey = s.apiKey
 
@@ -25,6 +26,7 @@ class Summoner:
 			self.value = self.getRankValue(rankInfo)
 			self.primary = 'FILL'
 			self.secondary = 'FILL'
+			self.gameId = 'inactive'
 		else:
 			print(summonerData)
 			return 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
@@ -178,7 +180,7 @@ class Summoner:
 class Game:
 
 	def __init__(self):
-		self.id = uuid.uuid4()
+		self.id = str(uuid.uuid4())
 		self.startTime = None
 		self.activeSummoners = []
 		self.activeTeams = []
@@ -192,11 +194,12 @@ class Game:
 
 		for player in activeSummoners:
 			if player.id == summoner.id:
-				await refBot.say(summoner.name + ' is already an active player.')
 				print(player.id, summoner.id)
 				return False
 
 		activeSummoners.append(summoner)
+		summoner.gameId = self.id
+		db.updateSummoner(summoner)
 		return True
 
 	def rmSummoner(self, summonerId):
@@ -205,16 +208,22 @@ class Game:
 		for summoner in activeSummoners:
 			if summoner.id == summonerId:
 				activeSummoners.remove(summoner)
+				summoner.gameId = 'inactive'
+				db.updateSummoner(summoner)
 				return 'Catch you later, ' + summoner.name + '!'
-
-		return summoner.name + ' is not currently an active player.'
 
 	def rollCall(self):
 		rollCallMsg = ''
 		i = 0
 		for summoner in self.activeSummoners:
 			i+=1
-			rollCallMsg += str(i) + '. ' + summoner.name + '\n'
+			s = summoner 
+			
+			placeStr = str(i) + '. '
+			rankStr = s.tier + ' ' + s.rank + ' '
+			roleStr = '(' + s.primary + '/' + s.secondary + ')'
+
+			rollCallMsg += placeStr + s.name + ' ' + roleStr + ': ' + rankStr + '\n'
 
 		return rollCallMsg
 
@@ -245,6 +254,9 @@ class Game:
 			self.matchmadeDraft()
 		elif dType == 'RANDOM':
 			self.randomDraft()
+
+	def __str__(self):
+		return self.id
 
 ############################################################################################################
 ##																										  ##

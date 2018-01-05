@@ -1,2 +1,2 @@
-apiKey = 'Your Riot API Key here'
+apiKey = 'Your Riot API key here'
 botToken = 'Your bot token here'
