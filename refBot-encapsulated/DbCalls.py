@@ -120,18 +120,20 @@ def updateSummonerRoles(summonerId, primary, secondary):
 		{'secondary': secondary, 'id': summonerId})
 
 def uploadSummoner(summoner):
-	existingSummoner = checkForSummoner(summoner.id)
+	existingSummonerData = checkForSummoner(summoner.id)
 	s = summoner
 
-	if existingSummoner is None:
+	if existingSummonerData is None:
 		with conn:
 			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole, :gameId)", 
 				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary, "gameId":summoner.gameId})
 
 		print('d.uploadSummoner --> added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'
-	elif existingSummoner:
-		updateSummoner(existingSummoner)
+
+	elif existingSummonerData:
+		updateSummoner(summoner)
 		return summoner.name + ' was already in the LittleLeague database. Their information has been updated.'
+	
 	else:
-		return 'd.uploadSummoner :: something went terribly wrong'
+		return 'DbCalls --> uploadSummoner : something went terribly wrong'

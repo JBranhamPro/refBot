@@ -23,8 +23,9 @@ def getSummonerId(summonerName):
 	return summonerDetails["id"]
 
 @refBot.command()
-async def aye(gameIndex=None, *nameInput):
+async def aye(*nameInput):
 	summonerName = ''
+	gameIndex = None
 	for part in nameInput:
 		summonerName += part
 
@@ -68,14 +69,14 @@ async def bye(*nameInput):
 	summonerId = getSummonerId(summonerName)
 	summonerData = db.getSummonerData(summonerId)
 	if summonerData:
-		summonerGame = summonerData[7]
+		gameId = summonerData[7]
 	else:
 		await refBot.say(failResponse)
 		return
 
-	if summonerGame:
+	if gameId:
 		for game in activeGames:
-			if game == summonerGame:
+			if game.id == gameId:
 				response = game.rmSummoner(summonerId)
 				await refBot.say(response)
 				return
@@ -137,6 +138,16 @@ async def roles(primary, secondary, *nameInput):
 	name = summonerData[1]
 	primary = summonerData[5]
 	secondary = summonerData[6]
+	gameId = summonerData[7]
+
+	if gameId:
+		for game in activeGames:
+			if game.id == gameId:
+				activeSummoners = game.activeSummoners
+				for summoner in activeSummoners:
+					if summoner.id == summonerId:
+						summoner.setRoles(primary, secondary)
+				break
 
 	response = name + ' : ' + primary + '/' + secondary
 
@@ -145,9 +156,11 @@ async def roles(primary, secondary, *nameInput):
 @refBot.command()
 async def rollCall():
 	if activeGames:
+		response = ''
 		for game in activeGames:
-			response = 'Game ' + str(activeGames.index(game)) + ': ' + ' -->\n'
+			response += 'Game ' + str(activeGames.index(game)) + ': ' + ' -->\n'
 			response += game.rollCall()
+			response += '\n\n\n'
 
 		await refBot.say(response)
 	else:

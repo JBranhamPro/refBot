@@ -142,31 +142,9 @@ class Summoner:
 		summonerDetails = summonerApiRequest.json()
 		return summonerDetails
 
-	def setRoles(self, primary, *secondary):
-		primary = primary.upper()
-
-		def errorReport(userInput):
-			return str(userInput) + ' is not a valid option. Please select one of the following: TOP, JNG, MID, ADC, SUP'
-
-		def changeRole(choice, role):
-			if choice == 'TOP':
-				role = choice
-			elif choice == 'JNG':
-				role = choice
-			elif choice == 'MID':
-				role = choice
-			elif choice == 'ADC':
-				role = choice
-			elif choice == 'SUP':
-				role = choice
-			else:
-				return errorReport(choice)
-
-		changeRole(primary, self.primary)
-
-		if secondary:
-			secondary = secondary.upper()
-			changeRole(secondary, self.secondary)
+	def setRoles(self, primary, secondary):
+		self.primary = primary
+		self.secondary = secondary
 
 	def __str__(self):
 		return self.name
@@ -223,7 +201,7 @@ class Game:
 			rankStr = s.tier + ' ' + s.rank + ' '
 			roleStr = '(' + s.primary + '/' + s.secondary + ')'
 
-			rollCallMsg += placeStr + s.name + ' ' + roleStr + ': ' + rankStr + '\n'
+			rollCallMsg += placeStr + s.name + ': ' + rankStr + ' ' + roleStr + '\n'
 
 		return rollCallMsg
 

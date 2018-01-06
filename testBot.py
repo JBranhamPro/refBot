@@ -2,39 +2,32 @@ import discord
 from discord.ext import commands
 import logging
 logging.basicConfig(level=logging.INFO)
+import time
 
-botToken = 'INSERT BOT TOKEN HERE'
-testBot = commands.Bot(command_prefix="/")
+botToken = 'MzQwNzQ4MDY0Mzc5NzY0NzM3.DTGcTw.ABR-Kb5IqAV4la03Y0RA_I9LuGc'
+testBot = commands.Bot(command_prefix="?")
 
 @testBot.command()
 async def rollCall(subset = 'a'):
 	if subset == 'b':
-		await testBot.say('!aye TheRealN3lo')
-		await testBot.say('!aye ECAEN')
-		await testBot.say('!aye HumbleDiligent')
-		await testBot.say('!aye FlameFlameFlame')
-		await testBot.say('!aye Xyeles')
-		await testBot.say('!aye BrokenLegFish')
-		await testBot.say('!aye TheBigSpence')
-		await testBot.say('!aye Bobmicbiong')
-		await testBot.say('!aye AnnieBot')
-		await testBot.say('!aye TheUnsungHeroPt2')
+		b = ['GP IS OP', 'Annie Bot', 'HumbleDiligent', 'IamHondaCivic', 'Greasy Turkey', 'Gundâm', 'Caution Fruit', 'Disciple13', 'Rob Bombadil', 'EthanD']
+		i = 0
+		for summoner in b:
+			await testBot.say('!aye ' + b[i])
+			time.sleep(2)
+			i+=1
 	else:
-		await testBot.say('!aye TheRealN3lo')
-		await testBot.say('!aye Ickyrus')
-		await testBot.say('!aye Bobmicbiong')
-		await testBot.say('!aye BrokenLegFish')
-		await testBot.say('!aye TheUnsungHeroPt2')
-		await testBot.say('!aye llamamalicious')
-		await testBot.say('!aye ParadoxCycle')
-		await testBot.say('!aye Zaraedaria')
-		await testBot.say('!aye TheBigSpence')
-		await testBot.say('!aye Xyeles')
-
-	await testBot.say('!rollCall')
+		a = ['TheRealN3lo', 'Ickyrus', 'Bobmicbiong', 'BrokenLegFish', 'NotAnAnimeProtag', 'llamamalicious', 'ParadoxCycle', 'Zaraedaria', 'TheBigSpence', 'Xyeles']
+		i = 0
+		for summoner in a:
+			await testBot.say('!aye ' + a[i])
+			time.sleep(2)
+			i+=1
 
 @testBot.command()
 async def on():
 	await testBot.say('!on matchmade')
 	await testBot.say('!on rChamps')
 	await testBot.say('!on rLanes')
+
+testBot.run(botToken)
