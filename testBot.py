@@ -4,7 +4,7 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import time
 
-botToken = 'MzQwNzQ4MDY0Mzc5NzY0NzM3.DTGcTw.ABR-Kb5IqAV4la03Y0RA_I9LuGc'
+botToken = 'Testbot token here'
 testBot = commands.Bot(command_prefix="?")
 
 @testBot.command()
