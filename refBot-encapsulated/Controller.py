@@ -29,34 +29,32 @@ async def aye(*nameInput):
 	for part in nameInput:
 		summonerName += part
 
-	summoner = go.Summoner(summonerName)
+	if len(activeGames) < 1:
+		await refBot.say('There are currently no active games to join. Use the open command to start a new game.')
+		return
 
-	response = summoner.name + ' is already an active player.'
+	summonerId = getSummonerId(summonerName)
 
-	if summoner.gameId != 'inactive':
-		await refBot.say(response)
+	for game in activeGames:
+		activeSummoners = game.activeSummoners
+		for summoner in activeSummoners:
+			if summoner.id == summonerId:
+				await refBot.say(summoner.name + ' is already an active player.')
+				return
 
-	if gameIndex is None:
-		for game in activeGames:
-			activeSummoners = game.activeSummoners
-			if len(activeSummoners) < 10:
-				added = game.addSummoner(summoner)
-				if added:
-					response = db.uploadSummoner(summoner)
-					await refBot.say(response)
-					return
-				else:
-					await refBot.say(response)
-				break 
+	summoner = go.Summoner(summonerId)
 
-		await refBot.say('There are no active games in which to add ' + summoner.name + '. Use the open command to start a new game.')
-	else:
-		game = activeGames[gameIndex]
-
-		if game is None:
-			await refBot.say('There is no game at index: ' + str(gameIndex))
-		else:
-			game.addSummoner(summoner)
+	for game in activeGames:
+		activeSummoners = game.activeSummoners
+		if len(activeSummoners) < 10:
+			added = game.addSummoner(summoner)
+			if added:
+				response = db.uploadSummoner(summoner)
+				await refBot.say(response)
+				return
+			else:
+				await refBot.say('Something went wrong :( . Refer to the console for more details.')
+			break
 
 @refBot.command()
 async def bye(*nameInput):
@@ -86,7 +84,7 @@ async def bye(*nameInput):
 @refBot.command()
 async def close(gameIndex):
 	try:
-		activeGames.remove(gameIndex)
+		del activeGames[gameIndex]
 		await refBot.say('Game ' + gameIndex + ' has been closed. You may give the open command if you would like to start a new one.')
 	except:
 		await refBot.say('The game in question could not be found.')
@@ -117,6 +115,8 @@ async def open():
 
 	activeGames.append(game)
 
+	print('Controller --> open: ', game)
+
 	await refBot.say('@everyone A new game is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
 
 @refBot.command()
@@ -132,33 +132,64 @@ async def roles(primary, secondary, *nameInput):
 	summonerId = getSummonerId(summonerName)
 	primary = primary.upper()
 	secondary = secondary.upper()
-	db.updateSummonerRoles(summonerId, primary, secondary)
 
-	summonerData = db.getSummonerData(summonerId)
-	name = summonerData[1]
-	primary = summonerData[5]
-	secondary = summonerData[6]
-	gameId = summonerData[7]
+	def invalidRole(role):
+		if role == 'TOP':
+			return None
+		elif role == 'JNG':
+			return None
+		elif role == 'MID':
+			return None
+		elif role == 'ADC':
+			return None
+		elif role == 'SUP':
+			return None
+		elif role == 'FILL':
+			return None
+		else:			
+			return role
 
-	if gameId:
-		for game in activeGames:
-			if game.id == gameId:
-				activeSummoners = game.activeSummoners
-				for summoner in activeSummoners:
-					if summoner.id == summonerId:
-						summoner.setRoles(primary, secondary)
-				break
+	primaryInvalid = invalidRole(primary)
+	secondaryInvalid = invalidRole(secondary)
 
-	response = name + ' : ' + primary + '/' + secondary
+	if primaryInvalid or secondaryInvalid:
+		invalidRoles = ''
+		if primaryInvalid:
+			invalidRoles += primaryInvalid
+			if secondaryInvalid:
+				invalidRoles += ', ' + secondaryInvalid
+		else:
+			invalidRoles += secondaryInvalid
+		await refBot.say('The following roles were not recognized: \" ' + invalidRoles + '\ ". Please use only the following in the roles command: TOP, JNG, MID, ADC, SUP, FILL')
+		return
+	
+	else:
+		db.updateSummonerRoles(summonerId, primary, secondary)
 
-	return response
+		summonerData = db.getSummonerData(summonerId)
+		name = summonerData[1]
+		primary = summonerData[5]
+		secondary = summonerData[6]
+		gameId = summonerData[7]
+
+		if gameId:
+			for game in activeGames:
+				if game.id == gameId:
+					activeSummoners = game.activeSummoners
+					for summoner in activeSummoners:
+						if summoner.id == summonerId:
+							summoner.setRoles(primary, secondary)
+					break
+
+		response = name + ' : ' + primary + '/' + secondary
+		await refBot.say(response)
 
 @refBot.command()
 async def rollCall():
 	if activeGames:
 		response = ''
 		for game in activeGames:
-			response += 'Game ' + str(activeGames.index(game)) + ': ' + ' -->\n'
+			response += 'Game ' + str(activeGames.index(game)) + ' -->\n'
 			response += game.rollCall()
 			response += '\n\n\n'
 

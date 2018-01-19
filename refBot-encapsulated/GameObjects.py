@@ -13,13 +13,25 @@ apiKey = s.apiKey
 
 class Summoner:
 
-	def __init__(self, summonerName):
-		summonerData = self.getSummonerData(summonerName)
+	def __init__(self, summonerId):
+		summonerData = db.getSummonerData(summonerId)
+		
 		if summonerData:
+			self.id = summonerId
+			self.name = summonerData[1]
+			self.tier = summonerData[2]
+			self.rank = summonerData[3]
+			self.value = summonerData[4]
+			self.primary = summonerData[5]
+			self.secondary = summonerData[6]
+			self.gameId = summonerData[7]
+
+		elif summonerData is None:
+			summonerData = self.getSummonerData(summonerId)
 			summonerDetails = summonerData["details"]
 			rankInfo = summonerData["rank"]
 
-			self.id = summonerDetails["id"]
+			self.id = summonerId
 			self.name = summonerDetails["name"]
 			self.tier = rankInfo["tier"]
 			self.rank = rankInfo["rank"]
@@ -31,20 +43,16 @@ class Summoner:
 			print(summonerData)
 			return 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
 
-	def getId(self, summonerName):
-		summonerDetails = self.getSummonerDetails(summonerName)
-		return summonerDetails["id"]
 
-	def getRank(self, summonerName):
-		summonerDetails = self.getSummonerDetails(summonerName)
-		summonerId = str(summonerDetails["id"])
-		
+	def getRank(self, summonerId):		
 		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
 		rankInfoApiRequest = requests.get(rankInfoUrl)
 		rawRankJson = rankInfoApiRequest.json()
 
 		soloQData = None
 		flexQData = None
+
+		print('GameObjects --> Summoner.getRank : ', rawRankJson)
 
 		for queueData in rawRankJson:
 			if queueData["queueType"] == 'RANKED_SOLO_5x5':
@@ -130,14 +138,15 @@ class Summoner:
 		rankValue += rankInfo["leaguePoints"] * .0001
 		return rankValue
 
-	def getSummonerData(self, summonerName):
-		summonerDetails = self.getSummonerDetails(summonerName)
-		summonerRank = self.getRank(summonerName)
+	def getSummonerData(self, summonerId):
+		summonerId = str(summonerId)
+		summonerDetails = self.getSummonerDetails(summonerId)
+		summonerRank = self.getRank(summonerId)
 		summonerData = {"details": summonerDetails, "rank": summonerRank}
 		return summonerData
 
-	def getSummonerDetails(self, summonerName):
-		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + apiKey
+	def getSummonerDetails(self, summonerId):
+		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/' + summonerId + '?api_key=' + apiKey
 		summonerApiRequest = requests.get(summonerUrl)
 		summonerDetails = summonerApiRequest.json()
 		return summonerDetails
@@ -201,7 +210,7 @@ class Game:
 			rankStr = s.tier + ' ' + s.rank + ' '
 			roleStr = '(' + s.primary + '/' + s.secondary + ')'
 
-			rollCallMsg += placeStr + s.name + ': ' + rankStr + ' ' + roleStr + '\n'
+			rollCallMsg += placeStr + s.name + ' : ' + rankStr + ' ' + roleStr + '\n'
 
 		return rollCallMsg
 

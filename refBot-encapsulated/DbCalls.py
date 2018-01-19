@@ -4,14 +4,14 @@ import json
 import Secrets as s
 apiKey = s.apiKey
 
-#conn = sqlite3.connect('LittleLeague.db')
+# conn = sqlite3.connect('LittleLeague.db')
 conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
 
 def checkForSummoner(summonerId):
 	summonerData = getSummonerData(summonerId)
-	print('d.checkForSummoner -->', summonerData)
+	print('DbCalls --> checkForSummoner : ', summonerData)
 
 	if summonerData is None:
 		return None
@@ -23,7 +23,7 @@ def getSummonerData(summonerId):
 
 	c.execute("SELECT * FROM summoners WHERE id=:summonerId", {"summonerId" : summonerId})
 	records = c.fetchall()
-	print('d.getSummoner --> DbCalls records:', records)
+	print('DbCalls --> getSummonerData : ', records)
 
 	try:
 		summonerData = records[0]
