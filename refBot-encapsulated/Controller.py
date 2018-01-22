@@ -16,6 +16,32 @@ activeGames = []
 
 refBot = commands.Bot(command_prefix="!")
 
+def addToTeam(teamIndex, nameInput):
+	summonerName = buildName(nameInput)
+	summonerId = getSummonerId(summonerName)
+
+	def addSummoner(game, summoner):
+		try:
+			team = game.activeTeams[teamIndex]
+		except:
+			game.activeTeams.insert(teamIndex, [])
+			team = game.activeTeams[teamIndex]
+
+		team.add(summoner)
+
+	for game in activeGames:
+		activeSummoners = game.activeSummoners
+		for summoner in activeSummoners:
+			if summoner.id == summonerId:
+				addSummoner(game, summoner)
+				break
+
+def buildName(nameInput):
+	summonerName = ''
+	for part in nameInput:
+		summonerName += part
+	return summonerName
+
 def getSummonerId(summonerName):
 	requestUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + Secrets.apiKey
 	getRequest = requests.get(requestUrl)
@@ -23,11 +49,12 @@ def getSummonerId(summonerName):
 	return summonerDetails["id"]
 
 @refBot.command()
+async def a(*nameInput):
+	addToTeam(0, nameInput)
+
+@refBot.command()
 async def aye(*nameInput):
-	summonerName = ''
-	gameIndex = None
-	for part in nameInput:
-		summonerName += part
+	summonerName = buildName(nameInput)
 
 	if len(activeGames) < 1:
 		await refBot.say('There are currently no active games to join. Use the open command to start a new game.')
@@ -57,10 +84,12 @@ async def aye(*nameInput):
 			break
 
 @refBot.command()
+async def b(*nameInput):
+	addToTeam(1, nameInput)
+
+@refBot.command()
 async def bye(*nameInput):
-	summonerName = ''
-	for part in nameInput:
-		summonerName += part
+	summonerName = buildName(nameInput)
 
 	failResponse = summonerName + ' is not currently an active player.'
 
@@ -84,16 +113,14 @@ async def bye(*nameInput):
 @refBot.command()
 async def close(gameIndex):
 	try:
-		del activeGames[gameIndex]
-		await refBot.say('Game ' + gameIndex + ' has been closed. You may give the open command if you would like to start a new one.')
+		del activeGames[int(gameIndex)]
+		await refBot.say('Game ' + str(gameIndex) + ' has been closed. You may give the open command if you would like to start a new one.')
 	except:
 		await refBot.say('The game in question could not be found.')
 
 @refBot.command()
 async def get(*nameInput):
-	summonerName = ''
-	for part in nameInput:
-		summonerName += part
+	summonerName = buildName(nameInput)
 
 	summonerId = getSummonerId(summonerName)
 
@@ -120,14 +147,8 @@ async def open():
 	await refBot.say('@everyone A new game is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
 
 @refBot.command()
-async def options(option, value):
-	m.setDraftOptions(option, value)
-
-@refBot.command()
 async def roles(primary, secondary, *nameInput):
-	summonerName = ''
-	for part in nameInput:
-		summonerName += part
+	summonerName = buildName(nameInput)
 
 	summonerId = getSummonerId(summonerName)
 	primary = primary.upper()
@@ -198,11 +219,13 @@ async def rollCall():
 		await refBot.say('There are no games currently open. Give the open command to start a new one.')
 
 @refBot.command()
-async def setupDb():
-	db.setupDb()
+async def save(gameIndex):
+	gameIndex = int(gameIndex)
+	game = activeGames[gameIndex]
+	db.saveGame(game)
 
 @refBot.command()
-async def test():
-	print(activeGames[0])
+async def setupDb():
+	db.setupDb()
 
 refBot.run(Secrets.botToken)

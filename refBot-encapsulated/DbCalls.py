@@ -9,6 +9,18 @@ conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
 
+def checkForGame(gameId):
+	c.execute("SELECT * FROM games WHERE id=:gameId", {"gameId" : gameId})
+	records = c.fetchall()
+	print('DbCalls --> checkForGame : ', records)
+
+	try:
+		gameData = records[0]
+	
+		return gameData
+	except:
+		return None
+
 def checkForSummoner(summonerId):
 	summonerData = getSummonerData(summonerId)
 	print('DbCalls --> checkForSummoner : ', summonerData)
@@ -18,6 +30,20 @@ def checkForSummoner(summonerId):
 	else:
 		print(summonerData)
 		return summonerData
+
+def createGameName(gameId):
+	c.execute("SELECT * FROM games where id=:gameId", {"gameId" : gameId})
+	existingGame = c.fetchall()
+	print('DbCalls --> createGameName : ', existingGame)
+
+	if existingGame:
+		return 'Fail'
+	else:
+		c.execute("SELECT * FROM games")
+		games = c.fetchall()
+
+		print('DbCalls --> createGameName : ', games)
+		return 'Pass'
 
 def getSummonerData(summonerId):
 
@@ -32,6 +58,29 @@ def getSummonerData(summonerId):
 	except:
 		return None
 
+def saveGame(game):
+	existingGame = checkForGame(game.id)
+
+	if existingGame:
+		c.execute("""UPDATE
+					games
+					SET
+					teamA = :teamA,
+					teamB = :teamB,
+					draftType = :type,
+					randomChamps = :rChamps,
+					randomLanes = :rLanes
+					WHERE
+					id = :id""", 
+					{'teamA':game.activeTeams[0], 'teamB':game.activeTeams[1], 'type':game.draft.type, 
+					'randomChamps':game.draft.rChamps, 'randomLanes':game.draft.rLanes,'id':game.id})
+	
+		conn.commit()
+	else:
+		c.execute("INSERT INTO games VALUES (:id, :name, :teamA, :teamB, :draftType, :randomChamps, :randomLanes)",
+		{'id':game.id, 'name':game.name, 'teamA':game.activeTeams[0].id, 'teamB':game.activeTeams[1].id,
+		'draftType':game.draft.type, 'randomChamps':game.draft.rChamps, 'randomLanes':game.draft.rLanes})
+
 def setupDb():
 	c.execute("""CREATE TABLE summoners (
 					id int,
@@ -40,45 +89,44 @@ def setupDb():
 					rank text,
 					value real,
 					primaryRole text,
-					secondaryRole text,
-					gameId text
+					secondaryRole text
+					)""")
+
+	c.execute("""CREATE TABLE games (
+					id text,
+					name text,
+					teamA text,
+					teamB text,
+					draftType text,
+					randomChamps int,
+					randomLanes boolean
 					)""")
 
 	c.execute("""CREATE TABLE teams (
-					gameId text,
-					teamId text,
-					teamName text,
-					teamValue real,
+					id text,
+					name text,
+					wins int,
+					losses int,
 
 					topId int,
-					topName text,
 					topTier text,
 					topRank text,
-					topValue real,
 					
 					jngId int,
-					jngName text,
 					jngTier text,
 					jngRank text,
-					jngValue real,
 					
 					midId int,
-					midName text,
 					midTier text,
 					midRank text,
-					midValue real,
 					
 					adcId int,
-					adcName text,
 					adcTier text,
 					adcRank text,
-					adcValue real,
 					
 					supId int,
-					supName text,
 					supTier text,
-					supRank text,
-					supValue real
+					supRank text
 					)""")
 
 	conn.commit()
@@ -125,8 +173,8 @@ def uploadSummoner(summoner):
 
 	if existingSummonerData is None:
 		with conn:
-			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole, :gameId)", 
-				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary, "gameId":summoner.gameId})
+			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole)", 
+				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary})
 
 		print('d.uploadSummoner --> added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'

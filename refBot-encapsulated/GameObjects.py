@@ -168,13 +168,14 @@ class Game:
 
 	def __init__(self):
 		self.id = str(uuid.uuid4())
+		self.name = db.createGameName(self.id)
 		self.startTime = None
 		self.activeSummoners = []
 		self.activeTeams = []
-		self.draft = Draft(self)
-		self.type = 'MANUAL'
-		self.rChamps = 0
-		self.rlanes = False
+		self.draft = Draft()
+
+		self.activeTeams.append(Team('A'))
+		self.activeTeams.append(Team('B'))
 
 	def addSummoner(self, summoner):
 		activeSummoners = self.activeSummoners
@@ -253,8 +254,10 @@ class Game:
 
 class Draft:
 	
-	def __init__(self, game):
-		self.Game = game
+	def __init__(self):
+		self.rChamps = 0
+		self.rLanes = False
+		self.type = 'MANUAL'
 
 	def getChampList(self):
 		champUrl = 'https://na1.api.riotgames.com/lol/static-data/v3/champions?locale=en_US&dataById=false&api_key=' + apiKey
@@ -357,3 +360,24 @@ class Draft:
 		for champ in champPool:
 			champ += '\n'
 			responseMsg += champ
+
+############################################################################################################
+##																										  ##
+##												TEAM OBJECT											  	  ##
+##																										  ##
+############################################################################################################
+
+class Team:
+	"""docstring for Team"""
+	def __init__(self, teamPos):
+		self.id = str(uuid.uuid4())
+		self.name = 'New Team ' + teamPos
+		self.summoners = {}
+		self.top = 'open'
+		self.jng = 'open'
+		self.mid = 'open'
+		self.adc = 'open'
+		self.sup = 'open'
+
+	def add(self, summoner):
+		self.summoners[summoner.id] = summoner

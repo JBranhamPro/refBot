@@ -1,24 +1,28 @@
 # RefBot
-The discord bot for the "Little League" League of Legends fan-made game mode.
+A Discord bot which handles custom 5v5s in League of Legends.
 
-date of last update = Sep 20, 2017
+date of last update = Jan 22, 2018
 
 
 Functionality currently working as intended as of date of last update:
 ========================================================================================================================================
 
-1. "<b>!aye</b> <i>summoner name</i>" - Verifies that the summoner name is correct then adds that summoner to the list of participating players.
+1. "<b>!a</b> <i>summoner name</i>" - If manual draft is enabled, adds the named summoner to Team A of the game they are currently in
 
-2. "<b>!bye</b> <i>summoner name</i>" - Removes the summoner from the list of participating players
+2. "<b>!aye</b> <i>summoner name</i>" - Adds the named summoner to an open game.
 
-3. "<b>!on</b> <i>feature</i>" - Sets the specified feature to active for the !draft command. Features currently implemented: rChamps <n>, rLanes, matchmade.
+3. "<b>!b</b> <i>summoner name</i>" - If manual draft is enabled, adds the named summoner to Team B of the game they are currently in
 
-4. "<b>!on rChamps</b> <i>n</i>" - Makes two pools of <i>n</i> number of unique champions, one pool for each team. By default, it pulls 15 champions if no other number is specificied.
+4. "<b>!bye</b> <i>summoner name</i>" - Removes the named summoner from the game they are currently in
 
-5. "<b>!on rLanes</b>" - Randomly assigns players on each team to a different role (TOP, JNG, MID, ADC, SUP)
+5. "<b>!close</b> <i>game index</i>" - Removes the game at the given index from the list of active games
 
-6. "<b>!on matchmade</b>" - Assigns players a value based on their current ranked standing (Solo/Duo first, Flex if no Solo/Duo found) and then separates the players into teams based on the lowest possible difference in value between the two teams
+6. "<b>!get</b> <i>summoner name</i>" - Retrieves the named summoner's data from the Little League database
 
-7. "<b>!off</b> <i>feature</i>" - Sets the specified feature to inactive for the !draft command (works identically to the "!on" command). Features currently implemented: rChamps <n>, rLanes, matchmade.
+7. "<b>!open</b>" - Adds a new game to the list of active games
 
-8. "<b>!draft</b>" - Divides the player group into two teams and then performs additional acts based on features that are currently active via the !on command. By default, it will divide players into two teams randomly if matchmade is turned off.
+8. "<b>!roles</b> <i>primary</i> <i>secondary</i> <i>summoner name</i>" - Sets the desired primary and secondary role to be displayed for the named summoner
+
+9. "<b>!rollCall</b>" - Displays the list of currently active games and the players enrolled in them
+
+10. "<b>!save</b> <i>game index</i>" - Uploads the current data of the game at the given index to the Little League database
