@@ -32,18 +32,33 @@ def checkForSummoner(summonerId):
 		return summonerData
 
 def createGameName(gameId):
-	c.execute("SELECT * FROM games where id=:gameId", {"gameId" : gameId})
-	existingGame = c.fetchall()
-	print('DbCalls --> createGameName : ', existingGame)
+	existingGame = checkForGame(gameId)
+	print('DbCalls --> createGameName : existingGame = ', existingGame)
 
 	if existingGame:
 		return 'Fail'
 	else:
-		c.execute("SELECT * FROM games")
-		games = c.fetchall()
+		games = getGames()
+		if games:
+			latestGameIndex = len(games) - 1
+			latestGame = games[latestGameIndex]
+			latestGameName = latestGame[1]
+			newName = int(latestGameName) + 1000001
+			newName = str(newName)
+			name = newName[1:]
+			print(name)
+			return name
+		else:
+			name = '000001'
+			print(int(name))
+			return name
 
-		print('DbCalls --> createGameName : ', games)
-		return 'Pass'
+def getGames():
+	c.execute("SELECT * FROM games")
+	games = c.fetchall()
+
+	print('DbCalls --> createGameName : currently saved games = ', games)
+	return games
 
 def getSummonerData(summonerId):
 
@@ -76,10 +91,16 @@ def saveGame(game):
 					'randomChamps':game.draft.rChamps, 'randomLanes':game.draft.rLanes,'id':game.id})
 	
 		conn.commit()
+
+		return True
 	else:
 		c.execute("INSERT INTO games VALUES (:id, :name, :teamA, :teamB, :draftType, :randomChamps, :randomLanes)",
 		{'id':game.id, 'name':game.name, 'teamA':game.activeTeams[0].id, 'teamB':game.activeTeams[1].id,
 		'draftType':game.draft.type, 'randomChamps':game.draft.rChamps, 'randomLanes':game.draft.rLanes})
+
+		conn.commit()
+
+		return False
 
 def setupDb():
 	c.execute("""CREATE TABLE summoners (

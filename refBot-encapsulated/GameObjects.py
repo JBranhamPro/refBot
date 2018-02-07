@@ -1,6 +1,8 @@
 import requests
 import json
 import uuid
+from itertools import combinations
+import time
 import DbCalls as db
 import Secrets as s
 apiKey = s.apiKey
@@ -41,7 +43,7 @@ class Summoner:
 			self.gameId = 'inactive'
 		else:
 			print(summonerData)
-			return 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
+			return False, 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
 
 
 	def getRank(self, summonerId):		
@@ -146,7 +148,7 @@ class Summoner:
 		return summonerData
 
 	def getSummonerDetails(self, summonerId):
-		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/' + summonerId + '?api_key=' + apiKey
+		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/' + str(summonerId) + '?api_key=' + apiKey
 		summonerApiRequest = requests.get(summonerUrl)
 		summonerDetails = summonerApiRequest.json()
 		return summonerDetails
@@ -174,8 +176,7 @@ class Game:
 		self.activeTeams = []
 		self.draft = Draft()
 
-		self.activeTeams.append(Team('A'))
-		self.activeTeams.append(Team('B'))
+		self.activeTeams = [Team('A'), Team('B')]
 
 	def addSummoner(self, summoner):
 		activeSummoners = self.activeSummoners
@@ -217,34 +218,40 @@ class Game:
 
 	def setOption(self, option, optValue = 15):
 		option = option.upper()
-		dType = self.dType
+		draft = self.draft
 
-		if option == 'MANUAL':
-			dType = 'MANUAL'
-		elif option == 'MATCHMADE':
-			dType = 'MATCHMADE'
-		elif option == 'RANDOM':
-			dType = 'RANDOM'
+		if option == 'MANUAL' or option == 'MATCHMADE' or option == 'RANDOM':
+			draft.type = option
+		
 		elif option == 'RLANES':
-			self.rLanes = True
+			draft.rLanes = True
 		elif option == 'RCHAMPS':
-			self.rChamps = True
-			self.rChampsNum = optValue
+			draft.rChamps = optValue
 		else:
 			print(option + ' is not a valid draft option.')
 
 	def start(self):
-		dType = self.dType
+		dType = self.draft.type
 
 		if dType == 'MANUAL':
-			self.manualDraft()
+			self.draft.manual()
+
 		elif dType == 'MATCHMADE':
-			self.matchmadeDraft()
+			teams = self.draft.matchmade(self.activeSummoners)
+
+			i = 0
+			for team in self.activeTeams:
+				for summoner in teams[i]:
+					team.add(summoner)
+				i+=1
+
+			return True
+
 		elif dType == 'RANDOM':
-			self.randomDraft()
+			draftMsg = self.random()
 
 	def __str__(self):
-		return self.id
+		return self.name
 
 ############################################################################################################
 ##																										  ##
@@ -272,10 +279,7 @@ class Draft:
 
 		return champList
 
-	def matchmadeDraft(self):
-		game = self.Game
-		activeSummoners = game.activeSummoners
-		activeTeams = game.activeTeams
+	def matchmade(self, activeSummoners):
 		bestTeamA = []
 		bestTeamB = []
 		prevValDiff = 100
@@ -313,34 +317,7 @@ class Draft:
 				bestTeamA = teamA
 				bestTeamB = teamB
 
-		# newTeamA = g.Team(bestTeamA, 0, 0, [])
-		# newTeamB = g.Team(bestTeamB, 0, 0, [])
-		# activeTeams.append(newTeamA)
-		# activeTeams.append(newTeamB)
-
-		msgTeamA = 'Team A is:\n\n'
-		i = 0
-		for summoner in bestTeamA:
-			i+=1
-			msgTeamA += str(i) + '. ' + summoner.name + '\n'
-
-		if game.rChamps:
-			msgTeamA += 'The champion pool for Team A is: ' + '\n' + randomChamps(rChamps)
-		print(msgTeamA)
-
-		msgTeamB = 'Team B is:\n\n'
-		i = 0
-		for summoner in bestTeamB:
-			i+=1
-			msgTeamB += str(i) + '. ' + summoner.name + '\n'
-
-		if game.rChamps:
-			msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
-		print(msgTeamB)
-
-		responseMsg = msgTeamA + '\n\n\n' + msgTeamB
-		print(responseMsg)
-		return responseMsg
+		return (bestTeamA, bestTeamB)
 
 	def randomChamps(self, poolSize):
 		from random import randint

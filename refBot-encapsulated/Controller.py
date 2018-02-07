@@ -7,6 +7,7 @@ import asyncio
 # Imports of required Python modules
 import requests
 import json
+import time
 # Imports of all refBot files
 import DbCalls as db
 import Secrets
@@ -43,10 +44,13 @@ def buildName(nameInput):
 	return summonerName
 
 def getSummonerId(summonerName):
-	requestUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + Secrets.apiKey
-	getRequest = requests.get(requestUrl)
-	summonerDetails = getRequest.json()
-	return summonerDetails["id"]
+	try:
+		requestUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/by-name/' + summonerName + '?api_key=' + Secrets.apiKey
+		getRequest = requests.get(requestUrl)
+		summonerDetails = getRequest.json()
+		return summonerDetails["id"]
+	except:
+		return False
 
 @refBot.command()
 async def a(*nameInput):
@@ -61,6 +65,9 @@ async def aye(*nameInput):
 		return
 
 	summonerId = getSummonerId(summonerName)
+	if summonerId == False:
+		await refBot.say('A summoner with the name, ' + summonerName + ', could not be found.')
+		return
 
 	for game in activeGames:
 		activeSummoners = game.activeSummoners
@@ -70,6 +77,8 @@ async def aye(*nameInput):
 				return
 
 	summoner = go.Summoner(summonerId)
+	if type(summoner) == str:
+		await refBot.say(summoner)
 
 	for game in activeGames:
 		activeSummoners = game.activeSummoners
@@ -119,6 +128,23 @@ async def close(gameIndex):
 		await refBot.say('The game in question could not be found.')
 
 @refBot.command()
+async def games():
+	games = db.getGames()
+
+	names = []
+	for game in games:
+		names.append(game[1])
+
+	response = ''
+	i = 0
+
+	for name in names:
+		i+=1
+		response += str(i) + '. ' + name + '\n'
+
+	await refBot.say(response)
+
+@refBot.command()
 async def get(*nameInput):
 	summonerName = buildName(nameInput)
 
@@ -144,7 +170,14 @@ async def open():
 
 	print('Controller --> open: ', game)
 
+	db.saveGame(game)
+
 	await refBot.say('@everyone A new game is open to enrollment! Type "!aye YourSummonerName" into the "RollCall" chat to join the game.')
+
+@refBot.command()
+async def option(gameIndex, opt, *optValue):
+	game = activeGames[int(gameIndex)]
+	game.setOption(opt, optValue)
 
 @refBot.command()
 async def roles(primary, secondary, *nameInput):
@@ -220,12 +253,66 @@ async def rollCall():
 
 @refBot.command()
 async def save(gameIndex):
-	gameIndex = int(gameIndex)
-	game = activeGames[gameIndex]
+	game = activeGames[int(gameIndex)]
 	db.saveGame(game)
 
 @refBot.command()
 async def setupDb():
 	db.setupDb()
+
+@refBot.command()
+async def start(gameIndex):
+	game = activeGames[int(gameIndex)]
+	draftType = game.draft.type
+	success = game.start()
+
+	if draftType == 'MATCHMADE':
+		if success:
+			teams = game.draft.matchmade(game.activeSummoners)
+
+			teamA = teams[0]
+			msgTeamA = 'Team A is:\n\n'
+			i = 0
+			for summoner in teamA:
+				i+=1
+				msgTeamA += str(i) + '. ' + summoner.name + '\n'
+
+			if game.draft.rChamps:
+				msgTeamA += 'The champion pool for Team A is: ' + '\n' + randomChamps(rChamps)
+			print(msgTeamA)
+
+			teamB = teams[1]
+			msgTeamB = 'Team B is:\n\n'
+			i = 0
+			for summoner in teamB:
+				i+=1
+				msgTeamB += str(i) + '. ' + summoner.name + '\n'
+
+			if game.draft.rChamps:
+				msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
+			print(msgTeamB)
+
+			response = msgTeamA + '\n\n\n' + msgTeamB
+
+	await refBot.say(response)
+
+	time.sleep(900)
+	try:
+		requestUrl = 'https://na1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/' + str(summonerId) + '?api_key=' + Secrets.apiKey
+		getRequest = requests.get(requestUrl)
+		lolGame = getRequest.json()
+		print(lolGame)
+		await refBot.say(lolGame["gameId"])
+		break
+	except:
+		print('No game started... yet')
+
+@refBot.command()
+async def test(*nameInput):
+	summonerName = buildName(nameInput)
+	summonerId = getSummonerId(summonerName)
+	# summoner = go.Summoner(summonerId)
+	# summonerDetails = summoner.getSummonerDetails(summonerId)
+	# print(summonerDetails)
 
 refBot.run(Secrets.botToken)
