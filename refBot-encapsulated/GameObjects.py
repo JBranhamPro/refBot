@@ -43,11 +43,11 @@ class Summoner:
 			self.gameId = 'inactive'
 		else:
 			print(summonerData)
-			return False, 'A summoner with the name, ' + str(summonerName) + ', could not be found.'
+			return False, 'A summoner with the name, {}, could not be found.'.format(str(summonerName))
 
 
 	def getRank(self, summonerId):		
-		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/' + summonerId + '?api_key=' + apiKey
+		rankInfoUrl = 'https://na1.api.riotgames.com/lol/league/v3/positions/by-summoner/{}?api_key={}'.format(str(summonerId), apiKey)
 		rankInfoApiRequest = requests.get(rankInfoUrl)
 		rawRankJson = rankInfoApiRequest.json()
 
@@ -148,7 +148,7 @@ class Summoner:
 		return summonerData
 
 	def getSummonerDetails(self, summonerId):
-		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/' + str(summonerId) + '?api_key=' + apiKey
+		summonerUrl = 'https://na1.api.riotgames.com/lol/summoner/v3/summoners/{}?api_key={}'.format(str(summonerId), apiKey)
 		summonerApiRequest = requests.get(summonerUrl)
 		summonerDetails = summonerApiRequest.json()
 		return summonerDetails
@@ -199,7 +199,7 @@ class Game:
 				activeSummoners.remove(summoner)
 				summoner.gameId = 'inactive'
 				db.updateSummoner(summoner)
-				return 'Catch you later, ' + summoner.name + '!'
+				return 'Catch you later, {}!'.format(summoner.name)
 
 	def rollCall(self):
 		rollCallMsg = ''
