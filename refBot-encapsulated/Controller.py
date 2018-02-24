@@ -12,6 +12,8 @@ import DbCalls as db
 import Secrets
 import GameObjects as go 
 
+currentPlayers = {}
+
 activeGames = []
 
 refBot = commands.Bot(command_prefix="!")
@@ -69,15 +71,13 @@ async def aye(*nameInput):
 		await refBot.say('A summoner with the name, {}, could not be found.'.format(summonerName))
 		return
 
-	for game in activeGames:
-		activeSummoners = game.activeSummoners
-		for summoner in activeSummoners:
-			if summoner.id == summonerId:
-				await refBot.say('{} is already an active player.'.format(summoner.name))
-				return
+	if summonerId in currentPlayers:
+		await refBot.say('{} is already an active player.'.format(summonerName))
+		return
 
 	summoner = go.Summoner(summonerId)
 	if type(summoner) == str:
+		# The Summoner object fail response is a string
 		await refBot.say(summoner)
 
 	for game in activeGames:
@@ -85,11 +85,12 @@ async def aye(*nameInput):
 		if len(activeSummoners) < 10:
 			added = game.addSummoner(summoner)
 			if added:
+				currentPlayers[summoner.id] = game.name
 				response = db.uploadSummoner(summoner)
 				await refBot.say(response)
 				return
 			else:
-				await refBot.say('Something went wrong :( . Refer to the console for more details.')
+				await refBot.say('Something went wrong with adding the summoner to game, {}.'.format(game.name))
 			break
 
 @refBot.command()
@@ -103,25 +104,33 @@ async def bye(*nameInput):
 	failResponse = '{} is not currently an active player.'.format(summonerName)
 
 	summonerId = getSummonerId(summonerName)
-	summonerData = db.getSummonerData(summonerId)
-	if summonerData:
-		gameId = summonerData[7]
-	else:
+	
+	if summonerId not in currentPlayers:
 		await refBot.say(failResponse)
-		return
-
-	if gameId:
+	else:
+		gameName = currentPlayers[summonerId]
 		for game in activeGames:
-			if game.id == gameId:
+			if game.name == gameName:
 				response = game.rmSummoner(summonerId)
+				del currentPlayers[summonerId]
 				await refBot.say(response)
 				return
-	else:
-		await refBot.say(failResponse)
+			else:
+				await refBot.say(failResponse)
 
 @refBot.command()
 async def close(gameIndex):
 	try:
+		game = activeGames[int(gameIndex)]
+		playersToRemove = []
+
+		for summonerId, gameName in currentPlayers.items():
+			if gameName == game.name:
+				playersToRemove.append(summonerId)
+
+		for summonerId in playersToRemove:
+			del currentPlayers[summonerId]
+
 		del activeGames[int(gameIndex)]
 		await refBot.say('Game {} has been closed. You may give the open command if you would like to start a new one.'.format(str(gameIndex)))
 	except:
@@ -225,20 +234,21 @@ async def roles(primary, secondary, *nameInput):
 	
 	else:
 		db.updateSummonerRoles(summonerId, primary, secondary)
-
 		summonerData = db.getSummonerData(summonerId)
 		name = summonerData[1]
 		primary = summonerData[5]
 		secondary = summonerData[6]
-		gameId = summonerData[7]
 
-		if gameId:
+		if summonerId in currentPlayers:
+			gameName = currentPlayers[summonerId]
+
 			for game in activeGames:
-				if game.id == gameId:
+				if game.name == gameName:
 					activeSummoners = game.activeSummoners
 					for summoner in activeSummoners:
 						if summoner.id == summonerId:
 							summoner.setRoles(primary, secondary)
+							break
 					break
 
 		# response = name + ' : ' + primary + '/' + secondary

@@ -4,8 +4,8 @@ import json
 import Secrets as s
 apiKey = s.apiKey
 
-# conn = sqlite3.connect('LittleLeague.db')
-conn = sqlite3.connect(':memory:')
+conn = sqlite3.connect('LittleLeague.db')
+# conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
 
@@ -172,10 +172,6 @@ def updateSummoner(summoner):
 		if summonerData[4] != summoner.value:
 			c.execute("""UPDATE summoners SET value = :value WHERE id = :id""", 
 				{'value': summoner.value, 'id': summoner.id})
-
-		if summonerData[7] != summoner.gameId:
-			c.execute("""UPDATE summoners SET gameId =:gameId WHERE id = :id""",
-				{'gameId': summoner.gameId, 'id': summoner.id})
 
 		print('d.updateSummoner -->', summoner)
 	else:

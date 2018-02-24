@@ -26,7 +26,6 @@ class Summoner:
 			self.value = summonerData[4]
 			self.primary = summonerData[5]
 			self.secondary = summonerData[6]
-			self.gameId = summonerData[7]
 
 		elif summonerData is None:
 			summonerData = self.getSummonerData(summonerId)
@@ -40,10 +39,9 @@ class Summoner:
 			self.value = self.getRankValue(rankInfo)
 			self.primary = 'FILL'
 			self.secondary = 'FILL'
-			self.gameId = 'inactive'
 		else:
 			print(summonerData)
-			return False, 'A summoner with the name, {}, could not be found.'.format(str(summonerName))
+			return 'A summoner with the name, {}, could not be found.'.format(str(summonerName))
 
 
 	def getRank(self, summonerId):		
