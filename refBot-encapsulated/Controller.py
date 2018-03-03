@@ -63,22 +63,22 @@ async def aye(*nameInput):
 	summonerName = buildName(nameInput)
 
 	if len(activeGames) < 1:
-		await refBot.say('There are currently no active games to join. Use the open command to start a new game.')
+		await refBot.say('`There are currently no active games to join. Use the open command to start a new game.`')
 		return
 
 	summonerId = getSummonerId(summonerName)
 	if summonerId == False:
-		await refBot.say('A summoner with the name, {}, could not be found.'.format(summonerName))
+		await refBot.say('```A summoner with the name, {}, could not be found.```'.format(summonerName))
 		return
 
 	if summonerId in currentPlayers:
-		await refBot.say('{} is already an active player.'.format(summonerName))
+		await refBot.say('```{} is already an active player.```'.format(summonerName))
 		return
 
 	summoner = go.Summoner(summonerId)
 	if type(summoner) == str:
 		# The Summoner object fail response is a string
-		await refBot.say(summoner)
+		await refBot.say('`{}`'.format(summoner))
 
 	for game in activeGames:
 		activeSummoners = game.activeSummoners
@@ -87,10 +87,10 @@ async def aye(*nameInput):
 			if added:
 				currentPlayers[summoner.id] = game.name
 				response = db.uploadSummoner(summoner)
-				await refBot.say(response)
+				await refBot.say('```{}```'.format(response))
 				return
 			else:
-				await refBot.say('Something went wrong with adding the summoner to game, {}.'.format(game.name))
+				await refBot.say('```Something went wrong with adding the summoner to game, {}.```'.format(game.name))
 			break
 
 @refBot.command()
@@ -101,22 +101,22 @@ async def b(*nameInput):
 async def bye(*nameInput):
 	summonerName = buildName(nameInput)
 
-	failResponse = '{} is not currently an active player.'.format(summonerName)
+	failResponse = '```{} is not currently an active player.```'.format(summonerName)
 
 	summonerId = getSummonerId(summonerName)
 	
 	if summonerId not in currentPlayers:
-		await refBot.say(failResponse)
+		await refBot.say('```{}```'.format(failResponse))
 	else:
 		gameName = currentPlayers[summonerId]
 		for game in activeGames:
 			if game.name == gameName:
 				response = game.rmSummoner(summonerId)
 				del currentPlayers[summonerId]
-				await refBot.say(response)
+				await refBot.say("```{}```".format(response))
 				return
 			else:
-				await refBot.say(failResponse)
+				await refBot.say("```{}```".format(failResponse))
 
 @refBot.command()
 async def close(gameIndex):
@@ -132,14 +132,32 @@ async def close(gameIndex):
 			del currentPlayers[summonerId]
 
 		del activeGames[int(gameIndex)]
-		await refBot.say('Game {} has been closed. You may give the open command if you would like to start a new one.'.format(str(gameIndex)))
+		await refBot.say('```Game {} has been closed. You may give the open command if you would like to start a new one.```'.format(str(gameIndex)))
 	except:
-		await refBot.say('The game in question could not be found.')
+		await refBot.say('```The game in question could not be found.```')
 
-@refBot.group(pass_context=True)
-async def draft(context):
-	if context.invoked_subcommand is None:
-		await refBot.say('Invalid draft command passed...')
+@refBot.command(pass_context=True)
+async def draft(cxt, gameIndex):
+	await refBot.say('`NOTE : Only matchmade draft currently supported`')
+	game = activeGames[int(gameIndex)]
+	draft = game.draft
+	game.draft.type = 'MATCHMADE'
+	success = game.start()
+	if success:
+		teamA = game.activeTeams[0].summoners
+		teamB = game.activeTeams[1].summoners
+		print(teamA, teamB)
+
+		async def teamMsg(team, letter, color):
+			i = 1
+			for summonerId, summoner in team.items():
+				emMsg = '{}. {}'.format(i, summoner)
+				em = discord.Embed(title='Team {}'.format(letter), description=emMsg, colour=0xDEADBF)
+				i+=1
+			await refBot.send_message(ctx.message.channel, 'Draft :', tts=false, embed=emMsg)
+
+		await teamMsg(teamA, 'A', colorA)
+		await teamMsg(teamB, 'B', colorB)
 
 @refBot.command()
 async def games():
@@ -156,7 +174,7 @@ async def games():
 		i+=1
 		response += str(i) + '. ' + name + '\n'
 
-	await refBot.say(response)
+	await refBot.say("```{}```".format(response))
 
 @refBot.command()
 async def get(*nameInput):
@@ -175,7 +193,7 @@ async def get(*nameInput):
 
 	# response = name + ': ' + tier + ' ' + rank + ' (' + str(value) + ') ' + primary + '/' + secondary
 	response = '{} : {} {}  ({}) {}/{}'.format(name, tier, rank, str(value), primary, secondary)
-	await refBot.say(response)
+	await refBot.say("```{}```".format(response))
 
 @refBot.command()
 async def open():
@@ -229,7 +247,7 @@ async def roles(primary, secondary, *nameInput):
 				invalidRoles += ', ' + secondaryInvalid
 		else:
 			invalidRoles += secondaryInvalid
-		await refBot.say('The following roles were not recognized: \"{}\". Please use only the following in the roles command: TOP, JNG, MID, ADC, SUP, FILL'.format(invalidRoles))
+		await refBot.say("```The following roles were not recognized: \"{}\". Please use only the following in the roles command: TOP, JNG, MID, ADC, SUP, FILL```".format(invalidRoles))
 		return
 	
 	else:
@@ -264,9 +282,9 @@ async def rollCall():
 			response += game.rollCall()
 			response += '\n\n\n'
 
-		await refBot.say(response)
+		await refBot.say("```{}```".format(response))
 	else:
-		await refBot.say('There are no games currently open. Give the open command to start a new one.')
+		await refBot.say("```There are no games currently open. Give the open command to start a new one.```")
 
 @refBot.command()
 async def save(gameIndex):
@@ -308,7 +326,7 @@ async def start(gameIndex):
 	i = 0
 	for summoner in teamB:
 		i+=1
-		msgTeamB += str(i) + '. ' + summoner.name + '\n'
+		msgTeamB += '{}. {}\n'.format(str(i), summoner.name)
 
 	if game.draft.rChamps:
 		msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
@@ -316,23 +334,37 @@ async def start(gameIndex):
 
 	response = msgTeamA + '\n\n\n' + msgTeamB
 
-	await refBot.say(response)
+	await refBot.say("```{}```".format(response))
 
-	asyncio.sleep(900)
-	try:
-		# requestUrl = 'https://na1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/' + str(summonerId) + '?api_key=' + Secrets.apiKey
-		requestUrl = 'https://na1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/{}?api_key={}'.format(str(summonerId), Secrets.apiKey)
-		getRequest = requests.get(requestUrl)
-		lolGame = getRequest.json()
-		print(lolGame)
-		await refBot.say(lolGame["gameId"])
-	except:
-		print('No game started... yet')
+	# asyncio.sleep(900)
+	# try:
+	# 	# requestUrl = 'https://na1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/' + str(summonerId) + '?api_key=' + Secrets.apiKey
+	# 	requestUrl = 'https://na1.api.riotgames.com/lol/spectator/v3/active-games/by-summoner/{}?api_key={}'.format(str(summonerId), Secrets.apiKey)
+	# 	getRequest = requests.get(requestUrl)
+	# 	lolGame = getRequest.json()
+	# 	print(lolGame)
+	# 	await refBot.say(lolGame["gameId"])
+	# except:
+	# 	print('No game started... yet')
 
-@refBot.command()
-async def test():
-	print(discord.Client)
-	client = discord.Client()
-	print(refBot)
+@refBot.command(pass_context=True)
+async def test(ctx):
+	channel = ctx.message.channel
+	author = ctx.message.author
+	server = ctx.message.server
+	color = discord.Colour('#aa0d0d')
+	em = discord.Embed(title='My Embed Title', description='My Embed Content.', colour=0xDEADBF)
+	msg = 'Hello world!'
+	print('Server :', server, 'Channel :', channel, 'Author :', author)
+	await refBot.send_message(channel, msg, tts=False, embed=em)
+
+@refBot.command(pass_context=True)
+async def args(ctx, one, two, three):
+	print(one, two, three)
+
+@refBot.command(pass_context=True)
+async def msg(ctx, arg):
+	arg = arg
+	await refBot.say('Message from Refbot: {arg}'.format(arg=arg))
 
 refBot.run(Secrets.botToken)

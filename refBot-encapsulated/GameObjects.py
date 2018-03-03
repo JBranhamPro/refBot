@@ -2,6 +2,7 @@ import requests
 import json
 import uuid
 from itertools import combinations
+from random import randint
 import time
 import DbCalls as db
 import Secrets as s
@@ -204,13 +205,19 @@ class Game:
 		i = 0
 		for summoner in self.activeSummoners:
 			i+=1
-			s = summoner 
+			s = summoner
+			primary = s.primary 
 			
-			placeStr = str(i) + '. '
-			rankStr = s.tier + ' ' + s.rank + ' '
-			roleStr = '(' + s.primary + '/' + s.secondary + ')'
+			# placeStr = str(i) + '. '
+			# rankStr = s.tier + ' ' + s.rank + ' '
+			# roleStr = '(' + s.primary + '/' + s.secondary + ')'
 
-			rollCallMsg += placeStr + s.name + ' : ' + rankStr + ' ' + roleStr + '\n'
+			# rollCallMsg += placeStr + s.name + ' : ' + rankStr + ' ' + roleStr + '\n'
+			msgToAdd = '{place} : ( {primary} / {secondary} ) {tier} {rank}\n'.format(place=i, primary=s.primary, secondary=s.secondary, tier=s.tier, rank=s.rank)
+
+			print(msgToAdd)
+
+			rollCallMsg += msgToAdd
 
 		return rollCallMsg
 
@@ -316,6 +323,70 @@ class Draft:
 				bestTeamB = teamB
 
 		return (bestTeamA, bestTeamB)
+
+	def random(self, summoners):
+		summoners = [summoners]
+		top = []
+		jng = []
+		mid = []
+		adc = []
+		sup = []
+		roles = {'TOP':top, 'JNG':jng, 'MID':mid, 'ADC':adc, 'SUP':sup}
+
+		def roleDraft(role, pool):
+			primaries = []
+			secondaries = []
+			primFills = []
+			secFills = []
+			
+			for summoner in summoners:
+				if summoner.primary == role:
+					primaries.append(summoner)
+				elif summoner.secondary == role:
+					secondaries.append(summoner)
+				elif summoner.primary == 'FILL':
+					primFills.append(summoner)
+				elif summoner.secondary == 'FILL':
+					secFills.append(summoner)
+			
+			while len(pool) < 2:
+				def pullFrom(category):
+					end = len(category) - 1
+					randomIndex = randint(0, end)
+					summoner = category[randIndex]
+					pool.append(summoner)
+					category.remove(summoner)
+					summoners.remove(summoner)
+
+				if len(primaries) > 1:
+					pullFrom(primaries)
+				elif len(secondaries) > 1:
+					pullFrom(secondaries)
+				elif len(primFills) > 1:
+					pullFrom(primFills)
+				elif len(secFills) > 1:
+					pullFrom(secFills)
+				else:
+					return 'There are not enough summoners who have selected {} or FILL to place in this role.'.format(role)
+
+		def buildTeam(teamPos, index)
+			team = Team(teamPos)
+			team.top = top[randint(0,1)]
+			team.jng = jng[randint(0,1)]
+			team.mid = mid[randint(0,1)]
+			team.adc = adc[randint(0,1)]
+			team.sup = sup[randint(0,1)]
+			teammates = [team.top, team.jng, team.mid, team.adc, team.sup]
+
+			for teammate in teammates:
+				team.add(teammate)
+
+		for role, pool in roles.items():
+			roleDraft(role, pool)
+
+		teamA = buildTeam('A')
+		teamB = buildTeam('B')
+		return teamA, teamB
 
 	def randomChamps(self, poolSize):
 		from random import randint

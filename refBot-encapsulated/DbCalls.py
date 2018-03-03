@@ -5,14 +5,12 @@ import Secrets as s
 apiKey = s.apiKey
 
 conn = sqlite3.connect('LittleLeague.db')
-# conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
 
 def checkForGame(gameId):
 	c.execute("SELECT * FROM games WHERE id=:gameId", {"gameId" : gameId})
 	records = c.fetchall()
-	print('DbCalls --> checkForGame : ', records)
 
 	try:
 		gameData = records[0]
@@ -23,7 +21,6 @@ def checkForGame(gameId):
 
 def checkForSummoner(summonerId):
 	summonerData = getSummonerData(summonerId)
-	print('DbCalls --> checkForSummoner : ', summonerData)
 
 	if summonerData is None:
 		return None
@@ -33,7 +30,6 @@ def checkForSummoner(summonerId):
 
 def createGameName(gameId):
 	existingGame = checkForGame(gameId)
-	print('DbCalls --> createGameName : existingGame = ', existingGame)
 
 	if existingGame:
 		return 'Fail'
@@ -56,15 +52,12 @@ def createGameName(gameId):
 def getGames():
 	c.execute("SELECT * FROM games")
 	games = c.fetchall()
-
-	print('DbCalls --> createGameName : currently saved games = ', games)
 	return games
 
 def getSummonerData(summonerId):
 
 	c.execute("SELECT * FROM summoners WHERE id=:summonerId", {"summonerId" : summonerId})
 	records = c.fetchall()
-	print('DbCalls --> getSummonerData : ', records)
 
 	try:
 		summonerData = records[0]
@@ -172,8 +165,7 @@ def updateSummoner(summoner):
 		if summonerData[4] != summoner.value:
 			c.execute("""UPDATE summoners SET value = :value WHERE id = :id""", 
 				{'value': summoner.value, 'id': summoner.id})
-
-		print('d.updateSummoner -->', summoner)
+			
 	else:
 		print('DbCalls --> updateSummoner : No summoner data available for ' + summoner.name)
 
@@ -193,7 +185,6 @@ def uploadSummoner(summoner):
 			c.execute("INSERT INTO summoners VALUES (:id, :name, :tier, :rank, :value, :primaryRole, :secondaryRole)", 
 				{"id":summoner.id, "name":summoner.name, "tier":summoner.tier, "rank":summoner.rank, "value":summoner.value, "primaryRole":summoner.primary, "secondaryRole":summoner.secondary})
 
-		print('d.uploadSummoner --> added record values:', (s.id, s.name, s.tier, s.rank, s.value, s.primary, s.secondary))
 		return summoner.name + ' has been added to the LittleLeague database.'
 
 	elif existingSummonerData:
@@ -201,4 +192,4 @@ def uploadSummoner(summoner):
 		return summoner.name + ' was already in the LittleLeague database. Their information has been updated.'
 	
 	else:
-		return 'DbCalls --> uploadSummoner : something went terribly wrong'
+		return 'DbCalls --> uploadSummoner : Summoner neither updated nor uploaded'
