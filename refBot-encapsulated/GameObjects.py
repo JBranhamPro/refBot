@@ -206,14 +206,7 @@ class Game:
 		for summoner in self.activeSummoners:
 			i+=1
 			s = summoner
-			primary = s.primary 
-			
-			# placeStr = str(i) + '. '
-			# rankStr = s.tier + ' ' + s.rank + ' '
-			# roleStr = '(' + s.primary + '/' + s.secondary + ')'
-
-			# rollCallMsg += placeStr + s.name + ' : ' + rankStr + ' ' + roleStr + '\n'
-			msgToAdd = '{place} : ( {primary} / {secondary} ) {tier} {rank}\n'.format(place=i, primary=s.primary, secondary=s.secondary, tier=s.tier, rank=s.rank)
+			msgToAdd = '{place}. {name} : ( {primary} / {secondary} ) {tier} {rank}\n'.format(place=i, name=s.name, primary=s.primary, secondary=s.secondary, tier=s.tier, rank=s.rank)
 
 			print(msgToAdd)
 
@@ -239,7 +232,8 @@ class Game:
 		dType = self.draft.type
 
 		if dType == 'MANUAL':
-			self.draft.manual()
+			# self.draft.manual()
+			return True
 
 		elif dType == 'MATCHMADE':
 			teams = self.draft.matchmade(self.activeSummoners)
@@ -253,7 +247,7 @@ class Game:
 			return True
 
 		elif dType == 'RANDOM':
-			draftMsg = self.random()
+			draftMsg = self.draft.random(activeSummoners)
 
 	def __str__(self):
 		return self.name
@@ -369,7 +363,7 @@ class Draft:
 				else:
 					return 'There are not enough summoners who have selected {} or FILL to place in this role.'.format(role)
 
-		def buildTeam(teamPos, index)
+		def buildTeam(teamPos, index):
 			team = Team(teamPos)
 			team.top = top[randint(0,1)]
 			team.jng = jng[randint(0,1)]
@@ -418,6 +412,7 @@ class Team:
 	def __init__(self, teamPos):
 		self.id = str(uuid.uuid4())
 		self.name = 'New Team ' + teamPos
+		self.captain = None
 		self.summoners = {}
 		self.top = 'open'
 		self.jng = 'open'
@@ -425,5 +420,35 @@ class Team:
 		self.adc = 'open'
 		self.sup = 'open'
 
-	def add(self, summoner):
+	def add(self, summoner, role=None):
 		self.summoners[summoner.id] = summoner
+		if role:
+			role = role.upper()
+			if role == 'TOP':
+				self.top = summoner
+				return True
+			elif role == 'JNG':
+				self.jng = summoner
+				return True
+			elif role == 'MID':
+				self.mid = summoner
+				return True
+			elif role == 'ADC':
+				self.adc = summoner
+				return True
+			elif role == 'SUP':
+				self.sup = summoner
+				return True
+			else:
+				return False, 'invalid role'
+		else:
+			return True
+
+	def getPlayers(self):
+		players = {}
+		players['TOP'] = self.top
+		players['JNG'] = self.jng
+		players['MID'] = self.mid
+		players['ADC'] = self.adc
+		players['SUP'] = self.sup
+		return players

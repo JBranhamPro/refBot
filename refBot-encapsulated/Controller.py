@@ -18,24 +18,31 @@ activeGames = []
 
 refBot = commands.Bot(command_prefix="!")
 
-def addToTeam(teamIndex, nameInput):
+async def addToTeam(ctx, teamIndex, role, nameInput):
+	author = ctx.message.author
+	role = role.upper()
 	summonerName = buildName(nameInput)
 	summonerId = getSummonerId(summonerName)
 
-	def addSummoner(game, summoner):
+	async def addSummoner(game, summoner):
 		try:
 			team = game.activeTeams[teamIndex]
 		except:
 			game.activeTeams.insert(teamIndex, [])
 			team = game.activeTeams[teamIndex]
 
-		team.add(summoner)
+		if team.captain == author:
+			callback = team.add(summoner, role)
+			print(callback)
+			await refBot.say("```{summonerName} is now {role} for {teamName}```".format(summonerName=summoner.name, role=role, teamName=team.name))
+		else:
+			await refBot.say("@{}, you are not currently the captain of {}".format(author, team.name))
 
 	for game in activeGames:
 		activeSummoners = game.activeSummoners
 		for summoner in activeSummoners:
 			if summoner.id == summonerId:
-				addSummoner(game, summoner)
+				await addSummoner(game, summoner)
 				break
 
 def buildName(nameInput):
@@ -54,16 +61,17 @@ def getSummonerId(summonerName):
 	except:
 		return False
 
-@refBot.command()
-async def a(*nameInput):
-	addToTeam(0, nameInput)
+@refBot.command(pass_context=True)
+async def a(ctx, role, *nameInput):
+	teamIndex = 0
+	await addToTeam(ctx, teamIndex, role, nameInput)
 
 @refBot.command()
 async def aye(*nameInput):
 	summonerName = buildName(nameInput)
 
 	if len(activeGames) < 1:
-		await refBot.say('`There are currently no active games to join. Use the open command to start a new game.`')
+		await refBot.say('```There are currently no active games to join. Use the open command to start a new game.```')
 		return
 
 	summonerId = getSummonerId(summonerName)
@@ -93,9 +101,10 @@ async def aye(*nameInput):
 				await refBot.say('```Something went wrong with adding the summoner to game, {}.```'.format(game.name))
 			break
 
-@refBot.command()
-async def b(*nameInput):
-	addToTeam(1, nameInput)
+@refBot.command(pass_context=True)
+async def b(ctx, role, *nameInput):
+	teamIndex = 1
+	await addToTeam(ctx, teamIndex, role, nameInput)
 
 @refBot.command()
 async def bye(*nameInput):
@@ -113,10 +122,27 @@ async def bye(*nameInput):
 			if game.name == gameName:
 				response = game.rmSummoner(summonerId)
 				del currentPlayers[summonerId]
-				await refBot.say("```{}```".format(response))
+				await refBot.say("{}".format(response))
 				return
 			else:
 				await refBot.say("```{}```".format(failResponse))
+
+@refBot.command(pass_context=True)
+async def captain(ctx, gameIndex, team):
+	author = ctx.message.author
+	game = activeGames[int(gameIndex)]
+	
+	if team.upper() == 'A':
+		teamIndex = 0
+	elif team.upper() == 'B':
+		teamIndex = 1
+	else:
+		await refBot.say("```An invalid team was provided. Please select either A or B.```")
+	
+	team = game.activeTeams[teamIndex]
+	team.captain = author
+
+	await refBot.say("```{} is now the captain for {}.```".format(team.captain, team.name))
 
 @refBot.command()
 async def close(gameIndex):
@@ -195,8 +221,10 @@ async def get(*nameInput):
 	response = '{} : {} {}  ({}) {}/{}'.format(name, tier, rank, str(value), primary, secondary)
 	await refBot.say("```{}```".format(response))
 
-@refBot.command()
-async def open():
+@refBot.command(pass_context=True)
+async def open(ctx):
+	owner = ctx.message.author
+	print(owner)
 	game = go.Game()
 
 	activeGames.append(game)
@@ -310,31 +338,45 @@ async def start(gameIndex):
 	if draftType == 'MATCHMADE':
 		teams = game.draft.matchmade(game.activeSummoners)
 
-	teamA = teams[0]
-	msgTeamA = 'Team A is:\n\n'
-	i = 0
-	for summoner in teamA:
-		i+=1
-		msgTeamA += str(i) + '. ' + summoner.name + '\n'
+		teamA = teams[0]
+		msgTeamA = 'Team A is:\n\n'
+		i = 0
+		for summoner in teamA:
+			i+=1
+			msgTeamA += str(i) + '. ' + summoner.name + '\n'
 
-	if game.draft.rChamps:
-		msgTeamA += 'The champion pool for Team A is: ' + '\n' + randomChamps(rChamps)
-	print(msgTeamA)
+		if game.draft.rChamps:
+			msgTeamA += 'The champion pool for Team A is: ' + '\n' + randomChamps(rChamps)
+		print(msgTeamA)
 
-	teamB = teams[1]
-	msgTeamB = 'Team B is:\n\n'
-	i = 0
-	for summoner in teamB:
-		i+=1
-		msgTeamB += '{}. {}\n'.format(str(i), summoner.name)
+		teamB = teams[1]
+		msgTeamB = 'Team B is:\n\n'
+		i = 0
+		for summoner in teamB:
+			i+=1
+			msgTeamB += '{}. {}\n'.format(str(i), summoner.name)
 
-	if game.draft.rChamps:
-		msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
-	print(msgTeamB)
+		if game.draft.rChamps:
+			msgTeamB += 'The champion pool for Team B is: ' + '\n' + randomChamps(rChamps)
+		print(msgTeamB)
 
-	response = msgTeamA + '\n\n\n' + msgTeamB
+		response = msgTeamA + '\n\n\n' + msgTeamB
 
-	await refBot.say("```{}```".format(response))
+		await refBot.say("```{}```".format(response))
+
+	elif draftType == 'MANUAL':
+		async def getTeamRoster(team):
+			players = team.getPlayers()
+			roster = ''
+			for role, summoner in players.items():
+				roster += '{}: {}\n'.format(role, summoner.name)
+			await refBot.say("```{} -->\n\n{}```".format(team.name, roster))
+
+
+		teamA = game.activeTeams[0]
+		teamB = game.activeTeams[1]
+		await getTeamRoster(teamA)
+		await getTeamRoster(teamB)
 
 	# asyncio.sleep(900)
 	# try:
