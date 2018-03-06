@@ -12,6 +12,18 @@ import DbCalls as db
 import Secrets
 import GameObjects as go 
 
+class Instance(object):
+	"""docstring for Instance"""
+	def __init__(self, server):
+		super(Instance, self).__init__()
+		self.id = server.id
+		self.name = server.name
+		self.server = server
+		self.currentPlayers = {}
+		self.activeGames = []
+
+instances = {}
+
 currentPlayers = {}
 
 activeGames = []
@@ -222,6 +234,14 @@ async def get(*nameInput):
 	await refBot.say("```{}```".format(response))
 
 @refBot.command(pass_context=True)
+async def init(ctx):
+	server = ctx.message.server
+	instance = Instance(server)
+	instances[server.id] = instance
+	await refBot.say('New instance created for {}.'.format(server.name))
+	print(instances)
+
+@refBot.command(pass_context=True)
 async def open(ctx):
 	owner = ctx.message.author
 	print(owner)
@@ -397,12 +417,16 @@ async def test(ctx):
 	color = discord.Colour('#aa0d0d')
 	em = discord.Embed(title='My Embed Title', description='My Embed Content.', colour=0xDEADBF)
 	msg = 'Hello world!'
-	print('Server :', server, 'Channel :', channel, 'Author :', author)
+	print('Server Name:', server.name, 'Server ID :', server.id, 'Channel :', channel, 'Author :', author, 'Nickname :', author.nick)
 	await refBot.send_message(channel, msg, tts=False, embed=em)
 
 @refBot.command(pass_context=True)
-async def args(ctx, one, two, three):
-	print(one, two, three)
+async def users(ctx):
+	client = discord.Client()
+	members = client.get_all_members()
+	member = iter(members)
+	print('Next member :', member)
+	print('Client Object :', client, '\nMembers :', members)
 
 @refBot.command(pass_context=True)
 async def msg(ctx, arg):

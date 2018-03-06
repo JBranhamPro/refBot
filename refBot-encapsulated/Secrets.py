@@ -1,2 +1,2 @@
 apiKey = 'Riot API key here'
-botToken = 'Bot token here'
+botToken = 'Bot tokem here'
