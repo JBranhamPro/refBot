@@ -4,7 +4,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import time
 
-botToken = 'Testbot token here'
+botToken = 'botToken'
+apiKey = 'apiKey'
 testBot = commands.Bot(command_prefix="?")
 
 @testBot.command()
@@ -29,5 +30,9 @@ async def on():
 	await testBot.say('!on matchmade')
 	await testBot.say('!on rChamps')
 	await testBot.say('!on rLanes')
+
+@testBot.command()
+async def item():
+	url = "https://na1.api.riotgames.com/lol/static-data/v3/items?locale=en_US"
 
 testBot.run(botToken)

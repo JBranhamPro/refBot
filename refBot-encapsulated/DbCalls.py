@@ -39,11 +39,10 @@ def createGameName(gameId):
 			latestGameIndex = len(games) - 1
 			latestGame = games[latestGameIndex]
 			latestGameName = latestGame[1]
-			newName = int(latestGameName) + 1000001
+			newName = int(latestGameName) + 1
 			newName = str(newName)
-			name = newName[1:]
-			print(name)
-			return name
+			print(newName)
+			return newName
 		else:
 			name = '000001'
 			print(int(name))
@@ -143,6 +142,11 @@ def setupDb():
 					supRank text
 					)""")
 
+	c.execute("""CREATE TABLE members (
+					id int,
+					summonerId int
+					)""")
+
 	conn.commit()
 	print('DbCalls --> setupDb : database has been established')
 
@@ -177,6 +181,15 @@ def updateSummonerRoles(summonerId, primary, secondary):
 
 		c.execute("""UPDATE summoners SET secondaryRole = :secondary WHERE id = :id""", 
 			{'secondary': secondary, 'id': summonerId})
+
+def uploadMember(memberId, summonerId):
+	existingMemberData = checkForMember(memberId)
+
+	if existingMemberData:
+		updateMemberData(memberId)
+	else:
+		with conn:
+			c.execute("INSERT INTO members VALUES (:id, :summonerId)", {"id" : memberId, "summonerId" : summonerId}
 
 def uploadSummoner(summoner):
 	existingSummonerData = checkForSummoner(summoner.id)

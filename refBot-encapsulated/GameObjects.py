@@ -40,6 +40,8 @@ class Summoner:
 			self.value = self.getRankValue(rankInfo)
 			self.primary = 'FILL'
 			self.secondary = 'FILL'
+
+			db.uploadSummoner(self)
 		else:
 			print(summonerData)
 			return 'A summoner with the name, {}, could not be found.'.format(str(summonerName))
