@@ -5,8 +5,21 @@ import Secrets as s
 apiKey = s.apiKey
 
 conn = sqlite3.connect('LittleLeague.db')
+# conn = sqlite3.connect(':memory:')
 
 c = conn.cursor()
+
+def addMembers():
+	with conn:
+		c.execute("""CREATE TABLE members (
+					id int,
+					summonerId int
+					)""")
+	print('The members table has been aded')
+
+def addTable():
+	# This is called by the controller and is used to add the newest table and will often call a different function
+	addMembers()
 
 def checkForGame(gameId):
 	c.execute("SELECT * FROM games WHERE id=:gameId", {"gameId" : gameId})
@@ -52,6 +65,15 @@ def getGames():
 	c.execute("SELECT * FROM games")
 	games = c.fetchall()
 	return games
+
+def getMember(memberId):
+	c.execute("SELECT * FROM members WHERE id=:memberId", {"memberId":memberId})
+	records = c.fetchall()
+	try:
+		memberData = records[0]
+		return memberData
+	except:
+		return None
 
 def getSummonerData(summonerId):
 
@@ -182,14 +204,20 @@ def updateSummonerRoles(summonerId, primary, secondary):
 		c.execute("""UPDATE summoners SET secondaryRole = :secondary WHERE id = :id""", 
 			{'secondary': secondary, 'id': summonerId})
 
+def updateMemberData(memberId, summonerId):
+	with conn:
+		c.execute("UPDATE members SET summonerId = :summonerId WHERE id = :memberId", {"summonerId":summonerId, "memberId":memberId})
+	return 'Member with ID, {}, updated with summoner ID, {}'.format(memberId, summonerId)
+
 def uploadMember(memberId, summonerId):
-	existingMemberData = checkForMember(memberId)
+	existingMemberData = getMember(memberId)
 
 	if existingMemberData:
-		updateMemberData(memberId)
+		updateMemberData(memberId, summonerId)
 	else:
 		with conn:
-			c.execute("INSERT INTO members VALUES (:id, :summonerId)", {"id" : memberId, "summonerId" : summonerId}
+			c.execute("INSERT INTO members VALUES (:id, :summonerId)", {"id" : memberId, "summonerId" : summonerId})
+		return 'Member with ID, {}, uploaded to database with summoner ID, {}'.format(memberId, summonerId)
 
 def uploadSummoner(summoner):
 	existingSummonerData = checkForSummoner(summoner.id)

@@ -45,7 +45,7 @@ async def addToTeam(ctx, teamIndex, role, nameInput):
 			print(callback)
 			await refBot.say("```{summonerName} is now {role} for {teamName}```".format(summonerName=summoner.name, role=role, teamName=team.name))
 		else:
-			await refBot.say("@{}, you are not currently the captain of {}".format(author, team.name))
+			await refBot.say("{}, you are not currently the captain of {}".format(author, team.name))
 
 	for game in instance.activeGames:
 		activeSummoners = game.activeSummoners
@@ -74,6 +74,15 @@ def getSummonerId(summonerName):
 	except:
 		return False
 
+def getSummonerFromMember(memberId):
+	memberData = db.getMember(memberId)
+	if memberData:
+		summonerId = memberData[1]
+		return summonerId
+	else:
+		print('Member could not be found')
+		return None
+
 @refBot.command(pass_context=True)
 async def a(ctx, role, *nameInput):
 	teamIndex = 0
@@ -84,16 +93,20 @@ async def aye(ctx, *nameInput):
 	instance = getInstance(ctx)
 	activeGames = instance.activeGames
 	currentPlayers = instance.currentPlayers
-	summonerName = buildName(nameInput)
 
 	if len(activeGames) < 1:
 		await refBot.say('```There are currently no active games to join. Use the open command to start a new game.```')
 		return
 
-	summonerId = getSummonerId(summonerName)
-	if summonerId == False:
-		await refBot.say('A summoner with the name, `{}`, could not be found.'.format(summonerName))
-		return
+	if nameInput:
+		summonerName = buildName(nameInput)
+		summonerId = getSummonerId(summonerName)
+		if summonerId == False:
+			await refBot.say('A summoner with the name, `{}`, could not be found.'.format(summonerName))
+			return
+	else:
+		member = ctx.message.author
+		summonerId = getSummonerFromMember(member.id)
 
 	if summonerId in currentPlayers:
 		await refBot.say('`{}` is already an active player.'.format(summonerName))
@@ -102,7 +115,7 @@ async def aye(ctx, *nameInput):
 	summoner = go.Summoner(summonerId)
 	if type(summoner) == str:
 		# The Summoner object fail response is a string
-		await refBot.say('`{}`'.format(summoner))
+		await refBot.say('```{}```'.format(summoner))
 
 	for game in activeGames:
 		activeSummoners = game.activeSummoners
@@ -111,7 +124,7 @@ async def aye(ctx, *nameInput):
 			if added:
 				currentPlayers[summoner.id] = game.name
 				index = activeGames.index(game)
-				await refBot.say('`{}` has been added to Game `{}`'.format(summoner.name, index))
+				await refBot.say('`{}` has been added to `Game {}`'.format(summoner.name, index))
 			else:
 				await refBot.say('Something went wrong with adding the summoner to game, {}.'.format(game.name))
 			break
@@ -126,12 +139,16 @@ async def bye(ctx, *nameInput):
 	instance = getInstance(ctx)
 	activeGames = instance.activeGames
 	currentPlayers = instance.currentPlayers
-	summonerName = buildName(nameInput)
 
-	failResponse = '`{}` is not currently an active player.'.format(summonerName)
+	if nameInput:
+		summonerName = buildName(nameInput)
+		summonerId = getSummonerId(summonerName)
+		failResponse = '`{}` is not currently an active player.'.format(summonerName)
+	else:
+		member = ctx.message.author
+		summonerId = getSummonerFromMember(member.id)
+		failResponse =	'`{}` is not currently an active player.'.format(member.nick)
 
-	summonerId = getSummonerId(summonerName)
-	
 	if summonerId not in currentPlayers:
 		await refBot.say('{}'.format(failResponse))
 	else:
@@ -150,10 +167,11 @@ async def captain(ctx, gameIndex, team):
 	instance = getInstance(ctx)
 	author = ctx.message.author
 	game = instance.activeGames[int(gameIndex)]
+	team = team.upper()
 	
-	if team.upper() == 'A':
+	if team == 'A':
 		teamIndex = 0
-	elif team.upper() == 'B':
+	elif team == 'B':
 		teamIndex = 1
 	else:
 		await refBot.say("```An invalid team was provided. Please select either A or B.```")
@@ -215,7 +233,17 @@ async def init(ctx):
 @refBot.command(pass_context=True)
 async def me(ctx, *nameInput):
 	member = ctx.message.author
-	summonerName
+	summonerName = buildName(nameInput)
+	summonerId = getSummonerId(summonerName)
+	callback = db.uploadMember(member.id, summonerId)
+	success = "`{member}` is now tied to the summoner, `{summoner}`.".format(member=member.nick, summoner=summonerName)
+	failure = "```Could not tie member, {member}, to a summoner with the name, {summoner}```".format(member=member.nick, summoner=summonerName)
+
+	if callback:
+		print(callback)
+		await refBot.say(success)
+	else:
+		await refBot.say(failure)
 
 @refBot.command(pass_context=True)
 async def open(ctx):
@@ -245,11 +273,15 @@ async def roles(ctx, primary, secondary, *nameInput):
 	instance = getInstance(ctx)
 	activeGames = instance.activeGames
 	currentPlayers = instance.currentPlayers
-	summonerName = buildName(nameInput)
-
-	summonerId = getSummonerId(summonerName)
 	primary = primary.upper()
 	secondary = secondary.upper()
+
+	if nameInput:
+		summonerName = buildName(nameInput)
+		summonerId = getSummonerId(summonerName)
+	else:
+		member = ctx.message.author
+		summonerId = getSummonerFromMember(member.id)
 
 	def invalidRole(role):
 		if role == 'TOP':
@@ -378,7 +410,11 @@ async def start(ctx, gameIndex):
 			players = team.getPlayers()
 			roster = ''
 			for role, summoner in players.items():
-				roster += '{}: {}\n'.format(role, summoner.name)
+				try:
+					summonerName = summoner.name
+				except:
+					summonerName = summoner
+				roster += '{}: {}\n'.format(role, summonerName)
 			await refBot.say("```{} -->\n\n{}```".format(team.name, roster))
 
 
@@ -406,6 +442,7 @@ async def test(ctx):
 	color = discord.Colour('#aa0d0d')
 	em = discord.Embed(title='My Embed Title', description='My Embed Content.', colour=0xDEADBF)
 	msg = 'Hello world!'
+	await refBot.say('me:' + str(author.id))
 	print('Server Name:', server.name, 'Server ID :', server.id, 'Channel :', channel, 'Author :', author, 'Nickname :', author.nick)
 	await refBot.send_message(channel, msg, tts=False, embed=em)
 
@@ -417,9 +454,20 @@ async def users(ctx):
 	print('Next member :', member)
 	print('Client Object :', client, '\nMembers :', members)
 
+@refBot.command()
+async def newTable():
+	db.addTable()
+
 @refBot.command(pass_context=True)
-async def msg(ctx, arg):
-	arg = arg
-	await refBot.say('Message from Refbot: {arg}'.format(arg=arg))
+async def key(ctx, newKey):
+	author = ctx.message.author
+	apiKey = Secrets.apiKey
+	admin = Secrets.admin
+
+	if int(author.id) == admin:
+		apiKey = newKey
+		print('New API key provided :' + Secrets.apiKey)
+	else:
+		await refBot.say('You do not have the proper permissions for this command.')
 
 refBot.run(Secrets.botToken)
