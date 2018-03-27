@@ -249,7 +249,7 @@ class Game:
 			return True
 
 		elif dType == 'RANDOM':
-			draftMsg = self.draft.random(activeSummoners)
+			draftMsg = self.draft.random(self.activeSummoners)
 
 	def __str__(self):
 		return self.name
@@ -320,8 +320,8 @@ class Draft:
 
 		return (bestTeamA, bestTeamB)
 
-	def random(self, summoners):
-		summoners = [summoners]
+	def randomOld(self, activeSummoners):
+		summoners = activeSummoners.copy()
 		top = []
 		jng = []
 		mid = []
@@ -349,23 +349,26 @@ class Draft:
 				def pullFrom(category):
 					end = len(category) - 1
 					randomIndex = randint(0, end)
-					summoner = category[randIndex]
+					summoner = category[randomIndex]
 					pool.append(summoner)
 					category.remove(summoner)
 					summoners.remove(summoner)
 
-				if len(primaries) > 1:
+				if len(primaries) > 0:
 					pullFrom(primaries)
-				elif len(secondaries) > 1:
+				elif len(secondaries) > 0:
 					pullFrom(secondaries)
-				elif len(primFills) > 1:
+				elif len(primFills) > 0:
 					pullFrom(primFills)
-				elif len(secFills) > 1:
+				elif len(secFills) > 0:
 					pullFrom(secFills)
 				else:
-					return 'There are not enough summoners who have selected {} or FILL to place in this role.'.format(role)
+					print('There are not enough summoners who have selected {} or FILL to place in this role.'.format(role))
+					break
 
-		def buildTeam(teamPos, index):
+			print('{}=====================\n \nPrimaries\n{}\n \nSecondaries\n{}\n \nPrimary Fills\n{}\n \nSecondary Fills\n{}\n'.format(role, primaries, secondaries, primFills, secFills))
+
+		def buildTeam(teamPos):
 			team = Team(teamPos)
 			team.top = top[randint(0,1)]
 			team.jng = jng[randint(0,1)]
@@ -384,6 +387,67 @@ class Draft:
 		teamB = buildTeam('B')
 		return teamA, teamB
 
+	def random(self, activeSummoners):
+		teamA = Team('A')
+		teamB = Team('B')
+		roles = ['TOP', 'JNG', 'MID', 'ADC', 'SUP']
+		roleTries = {'TOP':0, 'JNG':0, 'MID':0, 'ADC':0, 'SUP':0}
+		summoners = activeSummoners.copy()
+		team = teamA
+
+		while len(summoners) > 0:
+			def fillPool(role, tries):
+				for summoner in summoners:
+					if tries == 0:
+						if summoner.primary == role:
+							pool.append(summoner)
+					elif tries == 1:
+						if summoner.secondary == role:
+							pool.append(summoner)
+					elif tries == 3:
+						if summoner.primary == 'FILL':
+							pool.append(summoner)
+					elif tries == 4:
+						if summoner.secondary == 'FILL':
+							pool.append(Summoner)
+
+			def pullFromPool(pool):
+				if len(pool) > 1:
+					index = randint(0, len(pool)-1)
+					summoner = pool[index]
+					return summoner
+				elif len(pool) == 1:
+					return pool[0]
+				else:
+					return None
+
+			i = 0
+			role = roles[i]
+			tries = roleTries[role]
+			pool = []
+
+			fillPool(role, tries)
+			roleTries[role] += 1
+			summoner = pullFromPool(pool)
+			if summoner is None:
+				pass
+			else:
+				print(summoner)
+				team.add(summoner, role)
+				summoners.remove(summoner)
+
+			if i < 4:
+				i += 1
+			else:
+				i = 0
+
+			if team == teamA:
+				team = teamB
+			elif team == teamB:
+				team = teamA
+
+		return teamA, teamB
+
 	def randomChamps(self, poolSize):
 		from random import randint
 
@@ -392,7 +456,7 @@ class Draft:
 
 		champsDrafted = 0
 		while champDrafted < poolSize:
-			champ = champList[randint(0, len(champList))]
+			champ = champList[randint(0, len(champList)-1)]
 			champPool.append(champ)
 			champList.remove(champ)
 			champsDrafted+=1
@@ -423,6 +487,7 @@ class Team:
 		self.sup = 'open'
 
 	def add(self, summoner, role=None):
+		print(summoner, role)
 		self.summoners[summoner.id] = summoner
 		if role:
 			role = role.upper()

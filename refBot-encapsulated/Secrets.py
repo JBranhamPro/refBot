@@ -1,3 +1,3 @@
-apiKey = 'Riot API Key here'
-botToken = 'bot token here'
-admin = 'Discord Admin User ID here'
+apiKey = 'Riot API key here'
+botToken = 'Bot Token Here'
+admin = 'Discord Admin ID here'

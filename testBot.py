@@ -4,8 +4,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import time
 
-botToken = 'botToken'
-apiKey = 'apiKey'
+botToken = 'Bot token here'
+apiKey = 'Riot API key here'
 testBot = commands.Bot(command_prefix="?")
 
 @testBot.command()

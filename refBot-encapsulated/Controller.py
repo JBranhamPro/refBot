@@ -267,6 +267,11 @@ async def option(ctx, gameIndex, opt, *optValue):
 	instance = getInstance(ctx)
 	game = instance.activeGames[int(gameIndex)]
 	game.setOption(opt, optValue)
+	draft = game.draft
+	dType = draft.type
+	rLanes = str(draft.rLanes)
+	rChamps = str(draft.rChamps)
+	await refBot.say("```Current draft settings -\n\n Type: {} | Random Lanes: {} | Random Champions: {}```".format(dType, rLanes, rChamps))
 
 @refBot.command(pass_context=True)
 async def roles(ctx, primary, secondary, *nameInput):
