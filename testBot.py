@@ -4,8 +4,8 @@ import logging
 logging.basicConfig(level=logging.INFO)
 import time
 
-botToken = 'Bot token here'
-apiKey = 'Riot API key here'
+botToken = 'MzQwNzQ4MDY0Mzc5NzY0NzM3.DZqbOw.9cWXvvefkPJW8_t9Sh5C0KNPOQI'
+apiKey = 'RGAPI-0edc4f13-764b-4a6c-ad1a-238d796febe0'
 testBot = commands.Bot(command_prefix="?")
 
 @testBot.command()

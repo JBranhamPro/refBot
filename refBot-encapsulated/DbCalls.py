@@ -9,18 +9,6 @@ conn = sqlite3.connect('LittleLeague.db')
 
 c = conn.cursor()
 
-def addMembers():
-	with conn:
-		c.execute("""CREATE TABLE members (
-					id int,
-					summonerId int
-					)""")
-	print('The members table has been aded')
-
-def addTable():
-	# This is called by the controller and is used to add the newest table and will often call a different function
-	addMembers()
-
 def checkForGame(gameId):
 	c.execute("SELECT * FROM games WHERE id=:gameId", {"gameId" : gameId})
 	records = c.fetchall()
@@ -213,7 +201,8 @@ def uploadMember(memberId, summonerId):
 	existingMemberData = getMember(memberId)
 
 	if existingMemberData:
-		updateMemberData(memberId, summonerId)
+		callback = updateMemberData(memberId, summonerId)
+		return callback
 	else:
 		with conn:
 			c.execute("INSERT INTO members VALUES (:id, :summonerId)", {"id" : memberId, "summonerId" : summonerId})
